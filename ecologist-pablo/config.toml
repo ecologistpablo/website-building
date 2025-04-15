@@ -1,0 +1,23 @@
+baseURL = "/"
+title = "Ecologist Pablo"
+theme = "hugo-theme-cleanwhite"
+
+[params]
+  description = "Marine Conservation Researcher"
+  author = "Pablo A. Fuenzalia Miralles"
+  # Header image for the home page
+  header_image = "/images/cover-photo.jpg"
+  # Sidebar settings
+  sidebar_about_description = "Marine Conservation Researcher"
+  sidebar_avatar = "/images/cover-photo.jpg"
+  # Additional theme settings
+  header_image_height = "500px"
+  header_image_position = "center"
+  header_image_alt = "Cover Photo"
+
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "Home"
+    url = "/"
+    weight = 1
