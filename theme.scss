@@ -132,11 +132,9 @@ html { overflow-x: hidden; }  // belt-and-braces against the full-bleed 100vw br
 // Set the image inline: style="background-image:url(images/your-photo.jpg)"
 // (Inline so the url resolves relative to the page, not the Bootstrap stylesheet.)
 .photo-section {
-  min-height: 60vh;
+  width: 100%; min-height: 60vh;
   background-size: cover; background-position: center;
   display: flex; align-items: flex-end;
-  // Full-bleed, same breakout as the hero.
-  width: 100vw; margin-left: calc(50% - 50vw);
 }
 .photo-section__caption {
   background: linear-gradient(transparent, rgba(15,23,42,.6));
