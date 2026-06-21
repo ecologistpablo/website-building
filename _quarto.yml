@@ -6,8 +6,8 @@ project:
     - 404.qmd
     - blog/
     - tutorials/
-  resources:
-    - CNAME # custom domain for GitHub Pages
+  # resources:
+  #   - CNAME  # re-enable once DNS for the custom domain is configured
 
 execute:
   freeze: auto # pre-render R; CI republishes from committed _freeze/ (no R needed)
@@ -15,7 +15,7 @@ execute:
 website:
   title: "Pablo Fuenzalida"
   favicon: favicon.svg
-  site-url: https://ecologistpablo.org
+  # site-url: https://ecologistpablo.org  # restore once the custom domain is live
   navbar:
     left:
       - href: index.qmd
