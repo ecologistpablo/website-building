@@ -1,6 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0077b6"/>
-  <path d="M2 26 q 7 -8 14 0 t 14 0 t 14 0 t 14 0" fill="none" stroke="#caf0f8" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
-  <path d="M2 38 q 7 -8 14 0 t 14 0 t 14 0 t 14 0" fill="none" stroke="#90e0ef" stroke-width="5" stroke-linecap="round"/>
-  <path d="M2 50 q 7 -8 14 0 t 14 0 t 14 0 t 14 0" fill="none" stroke="#48cae4" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <defs>
+    <linearGradient id="hexg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#caf0f8"/>
+      <stop offset="1" stop-color="#90e0ef"/>
+    </linearGradient>
+  </defs>
+  <polygon points="32,1 58.85,16.5 58.85,47.5 32,63 5.15,47.5 5.15,16.5"
+           fill="url(#hexg)" stroke="#0077b6" stroke-width="2.5" stroke-linejoin="round"/>
+  <g transform="rotate(-10 32 32)">
+    <g fill="#023e8a">
+      <path d="M16,32 C22,27 32,26 42,27 C47,28 50,30 51,32 C50,34 47,36 42,37 C32,38 22,37 16,32 Z"/>
+      <path d="M17,32 L7,25 L11,32 L7,39 Z"/>
+      <path d="M30,27 L34,18 L39,27 Z"/>
+      <path d="M34,36 L31,43 L40,37 Z"/>
+    </g>
+    <circle cx="46" cy="30.8" r="1.3" fill="#caf0f8"/>
+  </g>
 </svg>

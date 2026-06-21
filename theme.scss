@@ -3,6 +3,7 @@
 /*-- scss:rules --*/
 
 body { -webkit-font-smoothing: antialiased; }
+html { overflow-x: hidden; }  // belt-and-braces against the full-bleed 100vw breakout
 
 // --- Navbar: sticky, hairline (transparent-on-scroll skipped — needs JS) ---
 .navbar {
@@ -54,7 +55,10 @@ body { -webkit-font-smoothing: antialiased; }
 .hero--photo {
   position: relative;
   background-size: cover; background-position: center;
-  min-height: 92vh; display: flex; align-items: center;
+  min-height: 100vh; min-height: 100svh;  // full-screen on arrival (svh = mobile-safe)
+  display: flex; align-items: center;
+  // Break out of Quarto's centered content column → true edge-to-edge.
+  width: 100vw; margin-left: calc(50% - 50vw);
 }
 .hero--photo::before {
   content: ""; position: absolute; inset: 0;
@@ -128,9 +132,11 @@ body { -webkit-font-smoothing: antialiased; }
 // Set the image inline: style="background-image:url(images/your-photo.jpg)"
 // (Inline so the url resolves relative to the page, not the Bootstrap stylesheet.)
 .photo-section {
-  width: 100%; min-height: 60vh;
+  min-height: 60vh;
   background-size: cover; background-position: center;
   display: flex; align-items: flex-end;
+  // Full-bleed, same breakout as the hero.
+  width: 100vw; margin-left: calc(50% - 50vw);
 }
 .photo-section__caption {
   background: linear-gradient(transparent, rgba(15,23,42,.6));

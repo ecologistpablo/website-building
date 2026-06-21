@@ -25,7 +25,7 @@ anchor-sections: false
   Add another anywhere by copying this block, dropping an image in images/,
   and changing `background-image:url(...)` + the caption text.
 ===================================================================== -->
-::: {.photo-section style="background-image:url(images/pablo-tonga.png)"}
+::: {.photo-section style="background-image:url(images/pablo_tonga.jpg)"}
 ::: {.photo-section__caption}
 <span>In the field — Tonga</span>
 :::
