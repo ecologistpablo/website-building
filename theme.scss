@@ -1,0 +1,106 @@
+// Shared component rules for BOTH light and dark themes.
+// Colors come from CSS custom properties defined in theme-light.scss / theme-dark.scss.
+/*-- scss:rules --*/
+
+body { -webkit-font-smoothing: antialiased; }
+
+// --- Navbar: sticky, hairline (transparent-on-scroll skipped — needs JS) ---
+.navbar {
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  backdrop-filter: saturate(180%) blur(6px);
+}
+.navbar .navbar-brand { font-weight: 600; letter-spacing: -0.01em; }
+.navbar .nav-link { font-weight: 400; }
+.navbar .bi, .navbar .ai { font-size: 1.1rem; color: var(--text); }
+
+// =========================================================================
+//  LANDING-PAGE COMPONENTS — light, whitespace-driven
+// =========================================================================
+
+.section { width: 100%; padding: clamp(72px, 11vw, 140px) 24px; }
+.section--surface { background: var(--surface); }
+.section__inner { max-width: 1200px; margin: 0 auto; }
+.section__inner--narrow { max-width: 760px; }
+
+.eyebrow {
+  font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--ocean); margin-bottom: 20px;
+}
+.section__title {
+  font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 300;
+  letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 16px;
+}
+.section__lead { font-size: 1.1rem; color: var(--muted); max-width: 700px; line-height: 1.6; }
+
+// Hero ---------------------------------------------------------------
+.hero { padding: clamp(80px, 13vw, 160px) 24px clamp(48px, 7vw, 96px); }
+.hero__inner { max-width: 1200px; margin: 0 auto; }
+.hero h1 {
+  font-size: clamp(3rem, 7vw, 6rem); font-weight: 300;
+  letter-spacing: -0.03em; line-height: 1.02; margin: 0 0 24px;
+}
+.hero__lead {
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem); color: var(--muted);
+  max-width: 680px; line-height: 1.55; margin: 0 0 36px;
+}
+.hero__actions { display: flex; gap: 16px; flex-wrap: wrap; }
+
+// Buttons ------------------------------------------------------------
+.btn-ocean, .btn-ghost {
+  display: inline-block; font-size: 15px; font-weight: 500;
+  padding: 13px 26px; border-radius: 12px; text-decoration: none;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.btn-ocean { background: var(--ocean); color: #fff; }
+.btn-ocean:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,119,182,.25); }
+.btn-ghost { color: var(--ocean); border: 1px solid var(--border); background: var(--card-bg); }
+.btn-ghost:hover { border-color: var(--ocean); transform: translateY(-2px); }
+
+// Cards --------------------------------------------------------------
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; margin-top: 56px; }
+.card-soft {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px; transition: transform .18s ease, box-shadow .18s ease;
+}
+.card-soft:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(15,23,42,.18); }
+.card-soft__dot {
+  width: 40px; height: 40px; border-radius: 12px; margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--ocean), var(--cyan));
+}
+.card-soft h3 { font-size: 1.35rem; font-weight: 500; margin: 0 0 10px; }
+.card-soft p { color: var(--muted); font-size: 1rem; line-height: 1.55; margin: 0; }
+
+// Editorial prose ----------------------------------------------------
+.editorial { font-size: 1.12rem; line-height: 1.7; color: var(--text); }
+.editorial p { margin-bottom: 18px; }
+
+// Experience / resume list -------------------------------------------
+.cv-list { margin-top: 48px; }
+.cv-item {
+  display: grid; grid-template-columns: 150px 1fr; gap: 24px;
+  padding: 24px 0; border-top: 1px solid var(--border);
+}
+.cv-item:last-child { border-bottom: 1px solid var(--border); }
+.cv-item__when { color: var(--muted); font-size: .95rem; font-weight: 500; padding-top: 3px; }
+.cv-item__role { font-size: 1.2rem; font-weight: 500; margin: 0 0 4px; }
+.cv-item__org { color: var(--ocean); font-weight: 500; }
+.cv-item__note { color: var(--muted); font-size: 1rem; line-height: 1.55; margin: 8px 0 0; }
+.cv-sub { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 56px 0 8px; }
+
+// Full-bleed photo band — the reusable "drop a photo here" pattern.
+.photo-section {
+  width: 100%; min-height: 60vh;
+  background-image: var(--bg-image); background-size: cover; background-position: center;
+  display: flex; align-items: flex-end;
+}
+.photo-section__caption {
+  background: linear-gradient(transparent, rgba(15,23,42,.6));
+  color: #fff; width: 100%; padding: 28px 24px;
+}
+.photo-section__caption span { max-width: 1200px; margin: 0 auto; display: block; font-size: 14px; letter-spacing: .04em; }
+
+@media (max-width: 640px) {
+  .cv-item { grid-template-columns: 1fr; gap: 6px; }
+}

@@ -1,0 +1,11 @@
+---
+title: "Blog"
+subtitle: "Field notes, marine ecology, and life on the reef."
+listing:
+  contents: posts
+  type: default
+  sort: "date desc"
+  categories: true
+  feed: true
+toc: false
+---

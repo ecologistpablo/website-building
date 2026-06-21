@@ -1,0 +1,10 @@
+---
+title: "R Tutorials"
+subtitle: "Reproducible workflows for marine ecology in R."
+listing:
+  contents: posts
+  type: default
+  sort: "date desc"
+  categories: true
+toc: false
+---

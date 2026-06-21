@@ -1,0 +1,62 @@
+project:
+  type: website
+  output-dir: _site
+  # Only render the site sources; ignore app.R / www / rsconnect (the Shiny app).
+  render:
+    - index.qmd
+    - blog/
+    - tutorials/
+  resources:
+    - CNAME # custom domain for GitHub Pages
+
+execute:
+  freeze: auto # pre-render R; CI republishes from committed _freeze/ (no R needed)
+
+website:
+  title: "Pablo Fuenzalida"
+  site-url: https://ecologistpablo.org
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: blog/index.qmd
+        text: Blog
+      - href: tutorials/index.qmd
+        text: R Tutorials
+    right:
+      - icon: instagram
+        href: https://www.instagram.com/ecologist.pablo/
+        aria-label: Instagram
+      - icon: github
+        href: https://github.com/ecologistpablo
+        aria-label: GitHub
+      - text: "<i class='ai ai-orcid' role='img' aria-label='ORCID'></i>"
+        href: https://orcid.org/0009-0006-4844-2336
+      - icon: linkedin
+        href: https://www.linkedin.com/in/pablo-alfonso-fuenzalida-miralles-21914b1b2/
+        aria-label: LinkedIn
+  page-footer:
+    border: false
+    left: "© 2026 Pablo Fuenzalida"
+    right:
+      - icon: instagram
+        href: https://www.instagram.com/ecologist.pablo/
+      - icon: github
+        href: https://github.com/ecologistpablo
+      - icon: envelope
+        href: mailto:pablofuenzalida427@gmail.com
+      - icon: linkedin
+        href: https://www.linkedin.com/in/pablo-alfonso-fuenzalida-miralles-21914b1b2/
+
+format:
+  html:
+    theme:
+      light: [cosmo, theme-light.scss, theme.scss]
+      dark: [cosmo, theme-dark.scss, theme.scss]
+    toc: false
+    include-in-header:
+      # Inter font + academicons (ORCID glyph isn't in Bootstrap Icons)
+      text: |
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">

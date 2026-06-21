@@ -1,0 +1,4 @@
+# Shared defaults for every blog post — new posts only need a title + date.
+author: "Pablo Fuenzalida"
+freeze: true
+title-block-banner: false

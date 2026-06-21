@@ -1,0 +1,17 @@
+{
+  "hash": "c9ae46600988a9ec9bfc67f26752d8da",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Getting started with R\"\ndate: 2026-06-21\ncategories: [basics]\ndescription: \"A first reproducible R chunk — proof the tutorials run.\"\n---\n\nTutorials here are written in Quarto, so the R runs when the page is rendered\nand the output is baked in. Here's a minimal example.\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# A tiny built-in dataset: average measurements of three iris species.\nspecies_means <- aggregate(\n  Sepal.Length ~ Species,\n  data = iris,\n  FUN  = mean\n)\n\nspecies_means\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n     Species Sepal.Length\n1     setosa        5.006\n2 versicolor        5.936\n3  virginica        6.588\n```\n\n\n:::\n:::\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nbarplot(\n  height    = species_means$Sepal.Length,\n  names.arg = species_means$Species,\n  col       = \"#1f5460\",\n  ylab      = \"Sepal length (cm)\"\n)\n```\n\n::: {.cell-output-display}\n![Mean sepal length by species.](index_files/figure-html/fig-sepal-1.png){#fig-sepal width=672}\n:::\n:::\n\n\nTo add a tutorial, copy this folder, rename it, and write. Code style here\nfollows the [r-best-practice](https://github.com/wurli/r-best-practice)\nconventions: `snake_case` names, aligned arguments, and self-contained chunks.\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

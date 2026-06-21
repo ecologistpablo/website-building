@@ -1,0 +1,147 @@
+---
+title: ""
+page-layout: full
+toc: false
+anchor-sections: false
+---
+
+::: {.hero}
+::: {.hero__inner}
+[2024 OWUSS Scholar · grad student · code enthusiast]{.eyebrow}
+
+# Pablo Fuenzalida
+
+<p class="hero__lead">Marine science grad student on Australia's Sunshine Coast. I poke at ocean data in R, get in the water when I can, and take photos along the way.</p>
+
+::: {.hero__actions}
+[Read the blog](blog/index.qmd){.btn-ocean}
+[R Tutorials](tutorials/index.qmd){.btn-ghost}
+:::
+:::
+:::
+
+<!-- ====================================================================
+  PHOTO BAND — the reusable "drop a background photo here" pattern.
+  Add another anywhere by copying this block, dropping an image in images/,
+  and changing `--bg:url(...)` + the caption text.
+===================================================================== -->
+::: {.photo-section style="--bg-image:url(images/pablo-tonga.png)"}
+::: {.photo-section__caption}
+<span>In the field — Tonga</span>
+:::
+:::
+
+::: {.section .section--surface}
+::: {.section__inner}
+[Research]{.eyebrow}
+<h2 class="section__title">What I study</h2>
+<p class="section__lead">Three threads run through my work, from beaches and reefs to the open ocean.</p>
+
+::: {.cards}
+::: {.card-soft}
+::: {.card-soft__dot}
+:::
+### Quantitative marine ecology
+Statistical and computational analysis of marine ecosystems — turning beach surveys and reef-monitoring datasets into evidence for conservation.
+:::
+::: {.card-soft}
+::: {.card-soft__dot}
+:::
+### Citizen science
+Community-driven monitoring and inclusive science — including making marine fieldwork accessible to people with disability.
+:::
+::: {.card-soft}
+::: {.card-soft__dot}
+:::
+### Movement ecology
+How marine megafauna — sharks, groupers, whales — move through the ocean, studied with tagging and biologging.
+:::
+:::
+:::
+:::
+
+::: {.section}
+::: {.section__inner .section__inner--narrow}
+[About]{.eyebrow}
+<h2 class="section__title">Hello</h2>
+
+::: {.editorial}
+I was born in Chile, grew up in Aotearoa New Zealand, and moved to Australia,
+where I've been for the past 20 years. I hold three degrees from the University
+of the Sunshine Coast, focusing on marine science and sustainable livelihoods.
+
+I've worked across the marine realm — for local government, universities, the
+private sector, NGOs, and tourism — and I speak intermediate Spanish. When I'm
+not in the data, I'm in the water or behind a camera; the photographs across
+this site are my own.
+:::
+:::
+:::
+
+::: {.section .section--surface}
+::: {.section__inner .section__inner--narrow}
+[Experience]{.eyebrow}
+<h2 class="section__title">Where I've worked</h2>
+
+```{=html}
+<div class="cv-list">
+  <div class="cv-item"><span class="cv-item__when">2025 – 2026</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">Watersports — <span class="cv-item__org">Lady Elliot Island Eco Resort</span></p>
+      <p class="cv-item__note">Marine biologist, dive instructor and Coxswain skipper on the southern Great Barrier Reef.</p>
+    </div>
+  </div>
+  <div class="cv-item"><span class="cv-item__when">2024 – 2025</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">2024 OWUSS Scholar — <span class="cv-item__org">Our World-Underwater Scholarship Society</span></p>
+      <p class="cv-item__note">One of three global scholars: 7 countries, 100+ days at sea, ~200 dives, and three month-long movement-ecology internships.</p>
+    </div>
+  </div>
+  <div class="cv-item"><span class="cv-item__when">2022 – 2025</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">Southeast Queensland Coordinator — <span class="cv-item__org">Reef Check Australia</span></p>
+      <p class="cv-item__note">Second-in-charge of the NGO; community engagement and coral-reef monitoring across Southeast Queensland.</p>
+    </div>
+  </div>
+  <div class="cv-item"><span class="cv-item__when">2023 – 2024</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">Research Assistant, Citizen Science — <span class="cv-item__org">University of the Sunshine Coast</span></p>
+      <p class="cv-item__note">Improving inclusivity in marine and astronomy citizen science for people with disability.</p>
+    </div>
+  </div>
+  <div class="cv-item"><span class="cv-item__when">2022 – 2023</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">Conservation Officer — <span class="cv-item__org">Sunshine Coast Council</span></p>
+      <p class="cv-item__note">Built a citizen-science initiative to monitor natural assets and engage the local community.</p>
+    </div>
+  </div>
+  <div class="cv-item"><span class="cv-item__when">2020 – 2022</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">Research Assistant, Beach Ecology — <span class="cv-item__org">University of the Sunshine Coast</span></p>
+      <p class="cv-item__note">Dataset management and analysis plus field expeditions; finished as second-in-charge of the research assistants.</p>
+    </div>
+  </div>
+</div>
+
+<p class="cv-sub">Education</p>
+
+<div class="cv-list">
+  <div class="cv-item"><span class="cv-item__when">Honours</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">B.Sc. End-on Honours (First-Class) — <span class="cv-item__org">University of the Sunshine Coast</span></p>
+      <p class="cv-item__note">Thesis on the movement and incidental capture of the critically endangered grey nurse shark (<em>Carcharias taurus</em>) in a nationwide shark-management program.</p>
+    </div>
+  </div>
+  <div class="cv-item"><span class="cv-item__when">Bachelor's</span>
+    <div class="cv-item__body">
+      <p class="cv-item__role">Double Bachelor's, Animal Ecology & Business (Tourism) — <span class="cv-item__org">University of the Sunshine Coast</span></p>
+      <p class="cv-item__note">Final-year GPA 7.0 / 7.0.</p>
+    </div>
+  </div>
+</div>
+
+<p class="cv-sub">Certifications</p>
+<p class="section__lead">Coxswain Grade 1 NC · PADI Open Water Scuba Instructor</p>
+```
+:::
+:::

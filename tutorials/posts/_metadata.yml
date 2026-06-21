@@ -1,0 +1,6 @@
+# Shared defaults for every tutorial — R chunks are frozen for CI publishing.
+author: "Pablo Fuenzalida"
+freeze: true
+execute:
+  warning: false
+  message: false

@@ -1,0 +1,23 @@
+/*-- scss:defaults --*/
+$font-family-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+$body-bg:    #ffffff;
+$body-color: #1e293b;
+$primary:    #0077b6;
+$link-color: #0077b6;
+$link-hover-color: #005f92;
+$navbar-bg:  #ffffff;
+$border-color: #e2e8f0;
+$headings-font-weight: 400;
+
+/*-- scss:rules --*/
+:root {
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --ocean: #0077b6;
+  --cyan: #90e0ef;
+  --success: #2a9d8f;
+}
