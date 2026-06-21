@@ -6,8 +6,9 @@ project:
     - 404.qmd
     - blog/
     - tutorials/
-  # resources:
-  #   - CNAME  # re-enable once DNS for the custom domain is configured
+  resources:
+    - images/  # background photos referenced via inline-style url() aren't auto-detected
+    # - CNAME  # re-enable once DNS for the custom domain is configured
 
 execute:
   freeze: auto # pre-render R; CI republishes from committed _freeze/ (no R needed)
