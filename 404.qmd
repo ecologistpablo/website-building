@@ -1,0 +1,18 @@
+---
+pagetitle: "Page not found"
+page-layout: full
+toc: false
+anchor-sections: false
+---
+
+::: {.section}
+::: {.section__inner .section__inner--narrow}
+[Error 404]{.eyebrow}
+<h1 class="section__title">Lost at sea</h1>
+<p class="section__lead">This page drifted off somewhere. Let's get you back to shore.</p>
+
+```{=html}
+<p style="margin-top:32px"><a href="/" class="btn-ocean">Back home</a></p>
+```
+:::
+:::

@@ -1,9 +1,9 @@
 project:
   type: website
   output-dir: _site
-  # Only render the site sources; ignore app.R / www / rsconnect (the Shiny app).
   render:
     - index.qmd
+    - 404.qmd
     - blog/
     - tutorials/
   resources:
@@ -14,6 +14,7 @@ execute:
 
 website:
   title: "Pablo Fuenzalida"
+  favicon: favicon.svg
   site-url: https://ecologistpablo.org
   navbar:
     left:
