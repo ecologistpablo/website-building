@@ -5,7 +5,7 @@ toc: false
 anchor-sections: false
 ---
 
-::: {.hero}
+::: {.hero .hero--photo style="background-image:url(images/background_scallop.jpg)"}
 ::: {.hero__inner}
 [2024 OWUSS Scholar · grad student · code enthusiast]{.eyebrow}
 
@@ -23,9 +23,9 @@ anchor-sections: false
 <!-- ====================================================================
   PHOTO BAND — the reusable "drop a background photo here" pattern.
   Add another anywhere by copying this block, dropping an image in images/,
-  and changing `--bg:url(...)` + the caption text.
+  and changing `background-image:url(...)` + the caption text.
 ===================================================================== -->
-::: {.photo-section style="--bg-image:url(images/pablo-tonga.png)"}
+::: {.photo-section style="background-image:url(images/pablo-tonga.png)"}
 ::: {.photo-section__caption}
 <span>In the field — Tonga</span>
 :::
@@ -38,23 +38,23 @@ anchor-sections: false
 <p class="section__lead">Three threads run through my work, from beaches and reefs to the open ocean.</p>
 
 ::: {.cards}
-::: {.card-soft}
-::: {.card-soft__dot}
+::: {.card-photo style="background-image:url(images/whale_shark.jpg)"}
+::: {.card-photo__body}
+### Movement ecology
+How marine megafauna — sharks, groupers, whales — move through the ocean, studied with tagging and biologging.
 :::
+:::
+::: {.card-photo style="background-image:url(images/bigeye_trevally.jpg)"}
+::: {.card-photo__body}
 ### Quantitative marine ecology
 Statistical and computational analysis of marine ecosystems — turning beach surveys and reef-monitoring datasets into evidence for conservation.
 :::
-::: {.card-soft}
-::: {.card-soft__dot}
 :::
+::: {.card-photo style="background-image:url(images/hawksbill_turtle.jpg)"}
+::: {.card-photo__body}
 ### Citizen science
 Community-driven monitoring and inclusive science — including making marine fieldwork accessible to people with disability.
 :::
-::: {.card-soft}
-::: {.card-soft__dot}
-:::
-### Movement ecology
-How marine megafauna — sharks, groupers, whales — move through the ocean, studied with tagging and biologging.
 :::
 :::
 :::
@@ -143,5 +143,11 @@ this site are my own.
 <p class="cv-sub">Certifications</p>
 <p class="section__lead">Coxswain Grade 1 NC · PADI Open Water Scuba Instructor</p>
 ```
+:::
+:::
+
+::: {.photo-section style="background-image:url(images/underwater_selfie.jpg)"}
+::: {.photo-section__caption}
+<span>thanks for scrolling down : ) I appreciate it</span>
 :::
 :::

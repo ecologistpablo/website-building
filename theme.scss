@@ -47,6 +47,26 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .hero__actions { display: flex; gap: 16px; flex-wrap: wrap; }
 
+// Hero variant with a full-bleed photo background + dark scrim for legibility.
+// To use: add `.hero--photo` and set the image inline:
+//   style="background-image:url(images/your-photo.jpg)"
+// (Inline so the url resolves relative to the page, not the Bootstrap stylesheet.)
+.hero--photo {
+  position: relative;
+  background-size: cover; background-position: center;
+  min-height: 92vh; display: flex; align-items: center;
+}
+.hero--photo::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(rgba(8,22,38,.45), rgba(8,22,38,.7));
+}
+.hero--photo .hero__inner { position: relative; z-index: 1; }
+.hero--photo h1 { color: #fff; }
+.hero--photo .hero__lead { color: rgba(255,255,255,.88); }
+.hero--photo .eyebrow { color: rgba(255,255,255,.85); }
+.hero--photo .btn-ghost { color: #fff; border-color: rgba(255,255,255,.55); background: transparent; }
+.hero--photo .btn-ghost:hover { border-color: #fff; }
+
 // Buttons ------------------------------------------------------------
 .btn-ocean, .btn-ghost {
   display: inline-block; font-size: 15px; font-weight: 500;
@@ -72,6 +92,21 @@ body { -webkit-font-smoothing: antialiased; }
 .card-soft h3 { font-size: 1.35rem; font-weight: 500; margin: 0 0 10px; }
 .card-soft p { color: var(--muted); font-size: 1rem; line-height: 1.55; margin: 0; }
 
+// Photo tiles (research cards) ---------------------------------------
+.card-photo {
+  border-radius: 16px; overflow: hidden; position: relative;
+  min-height: 320px; background-size: cover; background-position: center;
+  display: flex; align-items: flex-end;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.card-photo:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(15,23,42,.28); }
+.card-photo__body {
+  background: linear-gradient(transparent, rgba(11,22,32,.82));
+  color: #fff; width: 100%; padding: 28px 24px 24px;
+}
+.card-photo__body h3 { font-size: 1.2rem; font-weight: 600; margin: 0 0 8px; color: #fff; }
+.card-photo__body p { font-size: .95rem; line-height: 1.5; margin: 0; color: rgba(255,255,255,.82); }
+
 // Editorial prose ----------------------------------------------------
 .editorial { font-size: 1.12rem; line-height: 1.7; color: var(--text); }
 .editorial p { margin-bottom: 18px; }
@@ -90,9 +125,11 @@ body { -webkit-font-smoothing: antialiased; }
 .cv-sub { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 56px 0 8px; }
 
 // Full-bleed photo band — the reusable "drop a photo here" pattern.
+// Set the image inline: style="background-image:url(images/your-photo.jpg)"
+// (Inline so the url resolves relative to the page, not the Bootstrap stylesheet.)
 .photo-section {
   width: 100%; min-height: 60vh;
-  background-image: var(--bg-image); background-size: cover; background-position: center;
+  background-size: cover; background-position: center;
   display: flex; align-items: flex-end;
 }
 .photo-section__caption {
