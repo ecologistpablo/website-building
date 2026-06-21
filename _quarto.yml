@@ -53,8 +53,9 @@ website:
 format:
   html:
     theme:
-      light: [cosmo, theme-light.scss, theme.scss]
+      # First listed = default appearance → dark by default, toggle to light.
       dark: [cosmo, theme-dark.scss, theme.scss]
+      light: [cosmo, theme-light.scss, theme.scss]
     toc: false
     include-in-header:
       # Inter font + academicons (ORCID glyph isn't in Bootstrap Icons)
