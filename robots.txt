@@ -1,1 +1,1 @@
-Sitemap: https://ecologistpablo.org/sitemap.xml
+Sitemap: https://ecologistpablo.github.io/website-building/sitemap.xml

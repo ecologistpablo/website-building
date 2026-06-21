@@ -6,15 +6,15 @@
       version="2.0">
 <channel>
 <title>Pablo Fuenzalida</title>
-<link>https://ecologistpablo.org/blog/</link>
-<atom:link href="https://ecologistpablo.org/blog/index.xml" rel="self" type="application/rss+xml"/>
+<link>https://ecologistpablo.github.io/website-building/blog/</link>
+<atom:link href="https://ecologistpablo.github.io/website-building/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.8.24</generator>
 <lastBuildDate>Sat, 20 Jun 2026 14:00:00 GMT</lastBuildDate>
 <item>
   <title>Welcome to the blog</title>
   <dc:creator>Pablo Fuenzalida</dc:creator>
-  <link>https://ecologistpablo.org/blog/posts/welcome/</link>
+  <link>https://ecologistpablo.github.io/website-building/blog/posts/welcome/</link>
   <description><![CDATA[ 
 
 
@@ -30,7 +30,7 @@
   <category>news</category>
   <category>fieldwork</category>
   <category>photography</category>
-  <guid>https://ecologistpablo.org/blog/posts/welcome/</guid>
+  <guid>https://ecologistpablo.github.io/website-building/blog/posts/welcome/</guid>
   <pubDate>Sat, 20 Jun 2026 14:00:00 GMT</pubDate>
 </item>
 </channel>
