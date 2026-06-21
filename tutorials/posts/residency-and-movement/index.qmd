@@ -1,12 +1,12 @@
 ---
 title: "Residency and movement for acoustic telemetry"
 author: "Pablo Fuenzalida"
-date: 21-06-2026
+date: 2026-06-21
 categories: [movement, spatial, acoustic_telemetry]
 description: "Categorising residency and non-residency (movement) in acoustic telemetry data using basic dplyr functions"
 ---
 
-Hiya folks! My website may be written by AI, but this is not, so enjoy.
+Hiya folks! My website may be written by AI, but this is not, so enjoy. To toggle dark / light mode, please hit the lil button on the top-right corner.
 
 It's me, your internet friend, Pablo :). If you're reading this, thanks for exploring my first R tutorial!
 
@@ -55,30 +55,30 @@ dat1 <- dat %>%
   ungroup
 
 # ggplot it baby
-  ggplotly(
-    ggplot(dat1) +
+
+  ggplot(dat1) +
   annotation_map_tile('cartolight') +
   geom_spatial_point(aes(x = receiver_deployment_longitude, y = receiver_deployment_latitude, 
                          size = num_det, colour = installation_name), crs = 4326) +
   facet_wrap(~transmitter_id, ncol = 2) +
   labs(x = "Longitude", y = "Latitude", color = "Installation Name" , size = "Number of\nDetections") +
   theme_bw() +
-  scale_colour_scico_d(palette = 'lajolla')
-  )
+  scale_colour_scico_d(palette = 'lajolla')+
+   scale_y_continuous(n.breaks = 3)+
+   scale_x_continuous(n.breaks = 3)
 
-# we can also look at detections over time
-  dat_time <- dat %>%
-  mutate(date = as.Date(detection_datetime)) %>%
-  group_by(transmitter_id, date, installation_name) %>%
-  summarise(num_det = n())
+  
+# to look at the array in finer, interactive manners, we can rely on sf and mapview
+datxy <- dat %>%
+    group_by(station_name, receiver_deployment_longitude, receiver_deployment_latitude) %>%
+    summarise(num_det = n(), .groups = 'drop')
 
-  ggplotly(
-    ggplot(dat_time, aes(x = date, y = transmitter_id, color = installation_name, size = num_det)) +
-  labs(x = "Date", y = NULL, color = "Installation Name", size = "Number of\nDetections") +
-  geom_point() +
-  theme_bw()
-  )
+IMOSxy_sf <- sf::st_as_sf(datxy, coords = c("receiver_deployment_longitude", # need sf package
+                                                "receiver_deployment_latitude"),
+                          crs = 4326, agr = "constant")
 
+mapview::mapview(IMOSxy_sf, cex = "num_det", zcol = "station_name", fbg = FALSE) # need mapview package
+  
 ```
 
 Great, we have around 3 years of data across a few islands on the great barrier reef for 5 tags. Let's get to making non-residency, aka movement.
