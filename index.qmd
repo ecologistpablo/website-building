@@ -7,11 +7,11 @@ anchor-sections: false
 
 ::: {.hero .hero--photo style="background-image:url(images/background_scallop.jpg)"}
 ::: {.hero__inner}
-[2024 OWUSS Scholar · grad student · code enthusiast]{.eyebrow}
+[2024 OWUSS Scholar · code enthusiast]{.eyebrow}
 
 # Pablo Fuenzalida
 
-<p class="hero__lead">Marine science grad student on Australia's Sunshine Coast. I poke at ocean data in R, get in the water when I can, and take photos along the way.</p>
+<p class="hero__lead">Marine scientist on Australia's Sunshine Coast. I poke at ocean data in R, get in the water when I can, and take photos along the way.</p>
 
 ::: {.hero__actions}
 [Read the blog](blog/index.qmd){.btn-ocean}
