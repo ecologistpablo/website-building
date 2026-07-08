@@ -1,0 +1,76 @@
+---
+title: "How to summarise dive computer data"
+author: "Pablo Fuenzalida"
+date: "2026-07-08"
+output: html_document
+---
+Diving for a job can be tricky. When you're applying for new opportunities they normally want some form of log for you to show them you can actually dive.
+
+It makes life easier if you have a dive computer. lucky, my tax write-off last year was to upgrade my dive computer to a garmin descent 2 since I flooded my last one. I did use this daily and absoulely love the computer. It has tides, moon info, lets you change songs, tap-and-pay, and every dive configuration you could want. From single-gas rec diving to CCR and everything inbetween.
+
+If you are reading this I will assume you know how to use R, and that you have a folder somewhere in your laptop full of .fit files, the garmin files that contain info of each dive.
+
+To learn more on how to export them, google it! I just used my garmin dive app and on each dive individually exported them. 
+
+
+```{r}
+# july 2026
+  # pablo 
+    # coding everything u can in life
+      # we need to show we can dive for work
+    # so we shall summarise our past year of diving
+  # for this - you need a folder full of .fit files 
+# this comes from a garmin descent 2
+# I'm sure most garmin products would output dives like this
+# for more info:
+# https://www8.garmin.com/manuals/webhelp/GUID-4A2D3019-BA14-49BD-B371-4214D187D493/EN-US/GUID-317F0E90-9031-46E3-83B6-2658B3AE3DA9.html
+
+
+library(FITfileR) # the package that saves us
+library(dplyr) # for data wrestling
+library(purrr) # for processing a function
+
+# specify where your dives are
+fit_folder <- "~/Documents/Resume/dive_log"
+# read all the files
+files <- list.files(fit_folder, pattern = "\\.fit$", full.names = TRUE)
+
+# write a lil function
+read_fit_records <- function(file) {
+  fit <- readFitFile(file) # to read fit files
+  
+  recs <- getMessagesByType(fit, "record") # turn messages into records
+  
+  # recs is already a list of data.frames/tibbles
+  df <- bind_rows(recs) # bind the rowss of each dataframe
+  
+  df$source_file <- basename(file) # source_file as a col for basename
+  
+  df
+}
+
+all_records <- map(files, read_fit_records) %>% # map from purrr 
+  bind_rows() # combine all data into one df
+
+
+dat <- all_records |> 
+  group_by(source_file) |>  # group by dive 
+  mutate(date = as.Date(timestamp), # date
+         time_in  = min(timestamp, na.rm = TRUE) + hours(10), # time in (UTC + 10)
+         time_out = max(timestamp, na.rm = TRUE) + hours(10), # time out (UTC +10)
+         dive_mins = round(as.numeric(difftime(time_out, time_in, units ="mins")),2), # total dive time 
+         max_depth = round(max(depth, na.rm = T), 2), # depth
+         temperature = round(mean(temperature, na.rm = T), 2), # temperature
+         .groups = "drop") |>  # ungroup
+  distinct(date, time_in, time_out,dive_mins, max_depth, temperature) # drop unnecessary data
+
+str(dat) 
+sum(dat$dive_mins, na.rm = TRUE) # how many mins total dive time did we have
+# x mins divided by 60 = hours
+
+write.xlsx(dat, "pfuenzalida_dives_ladyelliot.xlsx") 
+# write it into an excel sheet
+
+
+```
+
