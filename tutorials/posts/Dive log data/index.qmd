@@ -36,7 +36,6 @@ remotes::install_github("grimbough/FITfileR")
 library(FITfileR) # the package that saves us
 library(dplyr) # for data wrestling
 library(purrr) # for processing a function
-library(lubridate)
 
 # specify where your dives are
 fit_folder <- "~/Documents/Resume/dive_log"
@@ -64,8 +63,8 @@ all_records <- map(files, read_fit_records) %>% # map from purrr
 dat <- all_records |> 
   group_by(source_file) |>  # group by dive 
   mutate(date = as.Date(timestamp), # date
-         time_in  = min(timestamp, na.rm = TRUE) + hours(10), # time in (UTC + 10)
-         time_out = max(timestamp, na.rm = TRUE) + hours(10), # time out (UTC +10)
+         time_in  = min(timestamp, na.rm = TRUE) + lubridate::hours(10), # time in (UTC + 10)
+         time_out = max(timestamp, na.rm = TRUE) + lubridate::hours(10), # time out (UTC +10)
          dive_mins = round(as.numeric(difftime(time_out, time_in, units ="mins")),2), # total dive time 
          max_depth = round(max(depth, na.rm = T), 2), # depth
          temperature = round(mean(temperature, na.rm = T), 2), # temperature
@@ -75,7 +74,6 @@ dat <- all_records |>
 str(dat) 
 sum(dat$dive_mins, na.rm = TRUE) # how many mins total dive time did we have
 # x mins divided by 60 = hours
-
 openxlsx::write.xlsx(dat, "pfuenzalida_dives_ladyelliot.xlsx") 
 # write it into an excel sheet
 
