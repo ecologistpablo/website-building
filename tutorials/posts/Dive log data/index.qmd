@@ -1,7 +1,7 @@
 ---
 title: "Scuba diving log data wrestling"
-author: "P diddy"
-ate: 2026-07-05
+author: "Pablo Fuenzalida"
+date: 2026-07-05
 categories: [Scuba diving, dive log, garmin dive watch]
 description: "Creating a dive_log.xlsx from garmin .fit files using data wrestling"
 ---
@@ -26,8 +26,7 @@ FYI - We will use a package graciously created by predecessors:
 
 Thank you grimbough : )
 
-```{# july 2026}
-# pablo 
+```{r}
 
 if(!requireNamespace("remotes")) { # install remotes if you don't have 
   install.packages("remotes")
@@ -37,6 +36,7 @@ remotes::install_github("grimbough/FITfileR")
 library(FITfileR) # the package that saves us
 library(dplyr) # for data wrestling
 library(purrr) # for processing a function
+library(lubridate)
 
 # specify where your dives are
 fit_folder <- "~/Documents/Resume/dive_log"
@@ -76,7 +76,7 @@ str(dat)
 sum(dat$dive_mins, na.rm = TRUE) # how many mins total dive time did we have
 # x mins divided by 60 = hours
 
-write.xlsx(dat, "pfuenzalida_dives_ladyelliot.xlsx") 
+openxlsx::write.xlsx(dat, "pfuenzalida_dives_ladyelliot.xlsx") 
 # write it into an excel sheet
 
 ```
