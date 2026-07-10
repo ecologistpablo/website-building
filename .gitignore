@@ -9,3 +9,4 @@
 .DS_Store
 
 **/*.quarto_ipynb
+**/*.rmarkdown  # knitr intermediate; committing it collides with index.qmd on render
