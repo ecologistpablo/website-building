@@ -1,0 +1,1028 @@
+---
+title: "Functional programming for ecological data"
+date: 2026-07-21
+categories: [functional programming, purrr, data.table, dplyr]
+description: "Twenty ~10-minute quests — use understanding to verify AI-generated R, from base functions to purrr, furrr, and data.table."
+toc: true
+toc-depth: 2
+format:
+  html:
+    code-fold: false
+---
+
+```{r setup}
+#| include: false
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.height = 4.5,
+  dpi = 120
+)
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(tibble)
+  library(purrr)
+  library(data.table)
+  library(ggplot2)
+  library(plotly)
+})
+```
+
+## Use AI to defeat AI
+
+Large language models are excellent at **pattern-matching** R code they have seen before. They are weaker at knowing *your* survey design, which column is the key, or whether `map()` should have been `map2()`. If you only copy-paste, the bug ships with the manuscript.
+
+This track trains the skill AI cannot give you: **reading and owning the code**. Each quest is ~10 minutes — short segments improve retention in technical material ([Mayer, 2009](https://doi.org/10.1016/B978-0-12-374921-5.00009-3)). We use a predictable rhythm from classroom research ([Rosenshine, 2012](https://doi.org/10.1177/0031721712452808)):
+
+1. **Tell you** what you will accomplish and which packages you need.
+2. **Explain** any new function *before* it appears in a chunk.
+3. **Show** annotated code — one comment per line so you can narrate it aloud.
+4. **Apply** where this shows up in marine ecology workflows (and what to ask AI to do next).
+
+When AI suggests a pipeline, you will know enough to say *“show me the list structure first”* or *“that needs `safely()` for my QC flags.”* That is the win.
+
+**Season 1:** 20 quests · same reprex dataset throughout · mark quests done in your script header for a cheap **retrieval** boost ([Roediger & Butler, 2011](https://doi.org/10.1016/j.jml.2010.09.004)).
+
+::: {.quest-hub}
+<p class="quest-hub__title">Season 1 · Functional programming</p>
+<p class="quest-hub__hint">You vs the autocomplete: build recipes you trust, then let AI draft the boring lines. Roadmap for quests 21–100 at the bottom.</p>
+
+::: {.quest-levels}
+::: {.quest-level}
+**Level 1**
+Scout · base R · quests 1–5
+:::
+::: {.quest-level}
+**Level 2**
+Wrangler · dplyr · quests 6–10
+:::
+::: {.quest-level}
+**Level 3**
+Mapper · purrr · quests 11–16
+:::
+::: {.quest-level}
+**Level 4**
+Parallel diver · furrr & data.table · quests 17–20
+:::
+:::
+:::
+
+## Reprex: reef transect counts
+
+Before Quest 1, create an RStudio project and run this once. **`tibble()`** builds a modern data frame; **`set.seed()`** fixes randomness so your reprex matches ours when you ask AI for help.
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+`base R`, **`tibble`** (install via `install.packages("tibble")` if needed — it ships with the tidyverse).
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Have a 60-row table of simulated belt-transect counts you can paste into any forum or prompt.
+:::
+:::
+
+```{r reprex-data}
+set.seed(427) # fix randomness so counts match this tutorial exactly
+
+reef_transects <- tibble::tibble( # build a tidy data frame
+  transect_id = rep(sprintf("T%02d", 1:12), each = 5), # 12 transects, 5 species rows each
+  site        = rep(rep(c("North", "South", "East"), length.out = 12), each = 5), # reef site label
+  species     = rep( # five fish names repeated across transects
+    c("Parrotfish", "Surgeonfish", "Grouper", "Snapper", "Damselfish"),
+    times = 12
+  ),
+  count       = rpois(60, lambda = c(8, 12, 3, 5, 20)), # Poisson counts — common for count data
+  depth_m     = rep(round(runif(12, 2, 15), 1), each = 5) # depth per transect, repeated per species row
+)
+
+reef_transects # print to confirm structure
+```
+
+::: {.callout-tip appearance="simple"}
+## RStudio habit
+
+Save as `00-reprex-reef.R`. Run line-by-line (`Cmd/Ctrl + Enter`). When AI gives you code, paste into a **blank script** first — never straight into your only copy of the analysis.
+:::
+
+---
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 1 · ~10 min · Level 1 — Scout
+:::
+
+### What is a function, really? {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+`base R` only.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Define a small function, call it with named arguments, and inspect a built-in function object — so AI-generated `function(...)` blocks are not magic.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Wrap any ecology calculation you repeat (CPUE, biomass, richness) in a named function, then ask AI to *extend* your function instead of inventing a new one from scratch.
+:::
+:::
+
+**What you'll learn:** A function is a **named recipe**. **`function(arg1, arg2) { ... }`** creates it; **`mean`**, **`sum`**, **`lm`** are functions you already call. Printing **`mean`** shows **formals** (arguments), **body** (code), and **environment** — the three parts every function has ([Wickham, 2014](https://adv-r.hadley.nz/function-objects.html)).
+
+```{r quest-1}
+mean # show the function object (formals, body, environment)
+
+fish_biomass <- function(count, mean_weight_kg) { # define inputs: counts and average weight
+  count * mean_weight_kg # body: multiply vector count by scalar or vector weight
+} # implicit return of last evaluated line
+
+fish_biomass( # call our recipe on one row of data
+  count = reef_transects$count[1], # first count in the table
+  mean_weight_kg = 0.4 # example weight in kg for that species group
+)
+```
+
+**Check yourself:** Write **`richness()`** that takes a data frame and returns **`length(unique(species_column))`**. Test on **`filter(reef_transects, site == "North")`**. If AI writes it for you, read each line aloud before running.
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 2 · ~10 min
+:::
+
+### Vectorised thinking vs row-wise loops {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**, **`ggplot2`**, **`plotly`** — `install.packages(c("dplyr", "ggplot2", "plotly"))` once.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Add a transformed column with **`mutate()`** and **`log1p()`** (log of 1 + x, safe for zeros) without a loop, and plot depth vs log-count.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Any time AI suggests `for (i in 1:nrow(df))`, ask whether **`mutate()`** across a column is enough — often it is for deterministic transforms on tidy data.
+:::
+:::
+
+**What you'll learn:** **`mutate()`** adds or changes columns on a data frame. The pipe **`|>`** passes the left side as the first argument to the right side. **`log1p(count)`** is vectorised: R applies it to **every row at once**. **`ggplot()`** + **`aes()`** map variables to axes; **`geom_point()`** draws points.
+
+```{r quest-2}
+reef_transects <- reef_transects |> # start with our reprex table
+  mutate(log_count = log1p(count)) # new column: log(1 + count), handles zero counts
+
+ggplot(reef_transects, aes(x = depth_m, y = log_count, color = site)) + # map depth, log count, colour by site
+  geom_point(size = 2, alpha = 0.85) + # draw one point per row
+  theme_minimal(base_size = 13) + # clean theme for slides and web
+  labs( # axis and title labels
+    title = "Log counts vs depth",
+    subtitle = "Vectorised mutate — no explicit loop",
+    y = "log1p(count)"
+  )
+```
+
+```{r quest-2-plotly}
+#| echo: false
+p2 <- ggplot(reef_transects, aes(
+  x = depth_m, y = log_count, color = site,
+  text = paste(species, transect_id, sep = " · ")
+)) +
+  geom_point(size = 2.5, alpha = 0.9) +
+  theme_minimal(base_size = 13) +
+  labs(y = "log1p(count)", x = "Depth (m)")
+plotly::ggplotly(p2, tooltip = "text")
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 3 · ~10 min
+:::
+
+### `apply()` — functions on matrix margins {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**, **`tidyr`**, **`tibble`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Turn a long species table into a matrix and use **`apply(X, MARGIN, FUN)`** to sum rows (transects) or average columns (species).
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Acoustic telemetry matrices, presence–absence grids, and monthly catch tables often start as matrices — **`apply()`** is still what many AI scripts use; you should recognise **`MARGIN = 1`** (rows) vs **`2`** (columns).
+:::
+:::
+
+**What you'll learn:** **`select()`** keeps columns. **`pivot_wider()`** spreads species counts into columns. **`column_to_rownames()`** moves transect IDs to row names. **`as.matrix()`** makes a numeric matrix. **`apply()`** applies **`sum`** or **`mean`** along margin **`1`** (each row) or **`2`** (each column).
+
+```{r quest-3}
+count_matrix <- reef_transects |> # long-format counts
+  select(transect_id, species, count) |> # keep keys and response
+  pivot_wider(names_from = species, values_from = count) |> # one column per species
+  column_to_rownames("transect_id") |> # transect ID becomes row name
+  as.matrix() # apply() wants a matrix
+
+transect_totals <- apply(count_matrix, 1, sum) # margin 1: sum each row (one total per transect)
+head(transect_totals) # first six transect totals
+
+species_means <- apply(count_matrix, 2, mean) # margin 2: mean each column (one mean per species)
+round(species_means, 2) # round for readable output
+```
+
+**Check yourself:** Which margin answers *“how many fish per transect?”* Which answers *“average count per species across transects?”*
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 4 · ~10 min
+:::
+
+### `split()` and `lapply()` — lists by group {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+`base R` only.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Split counts by site into a list and summarise each element with **`lapply()`**, always getting a **list** back (same length as input).
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Per-receiver detection lists, per-animal ID tracks, or per-trip dive logs — ecology is full of “do this for each group.” **`split()` + `lapply()`** is the pattern **`purrr`** improves in Quest 11.
+:::
+:::
+
+**What you'll learn:** **`split(x, f)`** breaks vector **`x`** into a list by factor **`f`**. **`lapply(list, FUN)`** runs **`FUN`** on each list element. Anonymous functions look like **`function(x) { ... }`** when you have not named the recipe yet.
+
+```{r quest-4}
+by_site <- split(reef_transects$count, reef_transects$site) # list of count vectors, one per site
+
+site_summaries <- lapply(by_site, function(x) { # for each site's counts...
+  c(mean = mean(x), sd = sd(x), n = length(x)) # return mean, sd, and sample size
+}) # result is a list with names North, South, East
+
+site_summaries # inspect each site's summary vector
+```
+
+```{r quest-4-viz}
+site_mean_df <- tibble::tibble( # small table for plotting
+  site = names(site_summaries), # site names from the list
+  mean_count = vapply(site_summaries, function(x) x["mean"], numeric(1)) # extract mean from each list element
+)
+
+ggplot(site_mean_df, aes(x = reorder(site, mean_count), y = mean_count, fill = site)) + # order bars by height
+  geom_col(show.legend = FALSE, width = 0.65) + # bar chart
+  scale_fill_manual(values = c(North = "#1f5460", South = "#2a9d8f", East = "#0077b6")) + # reef palette
+  theme_minimal(base_size = 13) +
+  labs(x = NULL, y = "Mean count", title = "Mean fish count by site")
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 5 · ~10 min
+:::
+
+### `sapply()` and the “simplify” trap {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+`base R` only (uses **`by_site`** from Quest 4).
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Use **`sapply()`** when every result has the same type and length, and know when AI should **not** use it (unequal lengths → stick with **`lapply()`** or purrr).
+:::
+::: {.quest-learn__row}
+**Apply it later**
+When generated code uses **`sapply()`** on heterogeneous model outputs, replace with **`map()`** / **`map_dbl()`** (Quest 12) so type surprises do not break **`bind_rows()`**.
+:::
+:::
+
+**What you'll learn:** **`sapply()`** is **`lapply()`** plus automatic simplification to a vector or matrix. That is convenient for **`mean`** per site, dangerous when each group returns a different length.
+
+```{r quest-5}
+sapply(by_site, mean) # each site returns one number → simplified to named vector
+
+# If summaries had different lengths, sapply() could return an unpredictable shape.
+# AI often hides that bug — prefer lapply() or purrr until Quest 11.
+```
+:::
+
+---
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 6 · ~10 min · Level 2 — Wrangler
+:::
+
+### `across()` — one `summarise()`, many columns {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Compute mean and sd for several numeric columns per **`site`** in one **`summarise()`**, using **`across()`** instead of copy-pasted **`mean(x)`** lines.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Reef monitoring with depth, temperature, and count — **`across(where(is.numeric), ...)`** is the tidy pattern AI should use instead of twelve **`mutate()`** lines.
+:::
+:::
+
+**What you'll learn:** **`group_by()`** defines groups. **`summarise()`** collapses each group to one row. **`across(cols, .fns)`** applies functions to multiple columns. **`all_of()`** selects columns by name safely. **`.names = "{.col}_{.fn}"`** controls output column names ([Wickham et al., 2023](https://doi.org/10.32614/RJ-2023-023)).
+
+```{r quest-6}
+numeric_cols <- c("count", "depth_m") # columns we want summaries for
+
+reef_transects |>
+  group_by(site) |> # one row per site in the output
+  summarise(
+    across( # apply both mean and sd to each numeric column
+      all_of(numeric_cols), # only count and depth_m
+      list(mean = mean, sd = sd), # named list of functions
+      .names = "{.col}_{.fn}" # e.g. count_mean, depth_m_sd
+    ),
+    .groups = "drop" # ungroup after summarise
+  )
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 7 · ~10 min
+:::
+
+### Custom functions inside `summarise()` and `across()` {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Write **`cv()`** (coefficient of variation) and use it inside **`summarise()`** to compare count variability by species.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Index of aggregation, CV of CPUE, or detection probability variance — put the ecology in a named function, then let **`across()`** apply it everywhere.
+:::
+:::
+
+**What you'll learn:** **`cv()`** is **`sd(x) / mean(x)`**. **`arrange(desc(...))`** sorts descending. **`summarise(cv_count = cv(count))`** passes the **`count`** column into **`cv`**.
+
+```{r quest-7}
+cv <- function(x) { # coefficient of variation: unitless spread
+  sd(x) / mean(x) # sd divided by mean
+}
+
+reef_transects |>
+  group_by(species) |> # one row per species
+  summarise(cv_count = cv(count), .groups = "drop") |> # apply cv to counts in each group
+  arrange(desc(cv_count)) # most variable species first
+```
+
+**Try:** Group by **`site`**, use **`across(where(is.numeric), cv)`** inside **`summarise()`**.
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 8 · ~10 min
+:::
+
+### `group_modify()` — custom data frame per group {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Return the **top two species by total count** within each site using **`group_modify()`**, which passes each group's data as **`.x`**.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+“Top receivers per shark,” “best months per tag” — whenever each group needs a **small table** back, not one number, **`group_modify()`** beats a fragile loop.
+:::
+:::
+
+**What you'll learn:** **`group_modify(.x, ~ { ... })`** runs on each group; **`.x`** is that group's rows. **`slice_max(total, n = 2)`** keeps the two largest **`total`** values ([dplyr slice docs](https://dplyr.tidyverse.org/reference/slice.html)).
+
+```{r quest-8}
+top_species_per_site <- reef_transects |>
+  group_by(site) |> # split by reef site
+  group_modify(~ { # .x is all rows for one site
+    .x |>
+      group_by(species) |> # species within this site
+      summarise(total = sum(count), .groups = "drop") |> # total count per species
+      slice_max(total, n = 2) # keep top two species by abundance
+  })
+
+top_species_per_site
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 9 · ~10 min
+:::
+
+### `.by` — per-group columns without `group_by()` {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`** ≥ 1.1.0.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Add **`mean_count_site`** within each **`site`** while keeping all rows, using **`.by = site`** inside **`mutate()`**.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Compare each transect to the site mean, or each detection to the array mean — **`.by`** keeps long tables long (good before joins or maps).
+:::
+:::
+
+**What you'll learn:** **`.by = site`** tells **`mutate()`** to compute **`mean(count)`** separately within each site, then broadcast the result to every row in that site. **`select()`** picks columns; **`head()`** shows the first rows.
+
+```{r quest-9}
+reef_transects |>
+  mutate( # add columns without collapsing rows
+    mean_count_site = mean(count), # mean count within each site
+    .by = site # grouping column for the calculation above
+  ) |>
+  select(site, species, count, mean_count_site) |> # keep readable columns
+  head(6) # preview
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 10 · ~10 min
+:::
+
+### Refactor repeated logic into a function + `group_modify()` {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Encapsulate **`summarise_abundance()`** and apply it to every **`site × species`** combination — the pattern behind many AI-generated “split-apply-combine” scripts.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Give AI **your** function definition in the prompt: *“Use `summarise_abundance()` on each tag ID.”* You stay in control of definitions; AI fills the boilerplate.
+:::
+:::
+
+**What you'll learn:** **`n_distinct(transect_id)`** counts unique transects. **`group_by(site, species)`** creates cross-classified groups. **`group_modify(~ summarise_abundance(.x))`** applies your function to each group's data frame **`.x`**.
+
+```{r quest-10}
+summarise_abundance <- function(df) { # df is one group's rows
+  df |>
+    summarise( # collapse this group to one row
+      total = sum(count), # total fish counted
+      n_transects = n_distinct(transect_id), # how many transects contributed
+      .groups = "drop"
+    )
+}
+
+reef_transects |>
+  group_by(site, species) |> # every site–species combination
+  group_modify(~ summarise_abundance(.x)) # run our recipe on each piece
+```
+:::
+
+---
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 11 · ~10 min · Level 3 — Mapper
+:::
+
+### `map()` — one output per list element {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**, **`purrr`** — `install.packages("purrr")`.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Split data by site into a list, **`map()`** a mean over each tibble, and read **`~ mean(.x$count)`** (purrr formula shorthand for anonymous functions).
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Lists of spatial objects, nested model fits, or per-year data frames — **`map()`** is the idiomatic replacement for **`lapply()`** when you want consistent naming and typed variants ([Henry & Wickham, 2020](https://purrr.tidyverse.org/)).
+:::
+:::
+
+**What you'll learn:** **`group_split()`** returns a list of data frames. **`group_keys()`** + **`pull(site)`** gives site names for the list. **`map(list, ~ ...)`** applies the expression to each element; **`.x`** is the current element. **`~`** is shorthand for **`function(.x) ...`**.
+
+```{r quest-11}
+site_lists <- reef_transects |>
+  group_by(site) |> # prepare grouping
+  group_split() # list of three data frames
+
+names(site_lists) <- reef_transects |>
+  group_by(site) |>
+  group_keys() |> # one row per site
+  pull(site) # character vector of site names
+
+means_list <- map(site_lists, ~ mean(.x$count)) # mean count per site's tibble
+
+means_list
+```
+
+```{r quest-11-interactive}
+#| echo: false
+map_df <- tibble::tibble(
+  site = names(means_list),
+  mean_count = unlist(means_list)
+)
+plot_11 <- ggplot(map_df, aes(x = site, y = mean_count, fill = site)) +
+  geom_col(show.legend = FALSE) +
+  theme_minimal() +
+  labs(title = "map() output — one mean per site list element")
+plotly::ggplotly(plot_11)
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 12 · ~10 min
+:::
+
+### Typed maps: `map_dbl()`, `map_chr()` {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`purrr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Return a **double vector** and a **character vector** directly — no **`sapply()`** simplify surprises.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+When binding model AICs or tag IDs, insist AI use **`map_dbl()`** / **`map_chr()`** so **`c()`** and **`bind_rows()`** get predictable types.
+:::
+:::
+
+**What you'll learn:** **`map_dbl()`** always returns a numeric vector of length **`length(list)`**. **`map_chr()`** returns characters. **`paste(..., collapse = ", ")`** joins strings.
+
+```{r quest-12}
+map_dbl(site_lists, ~ mean(.x$count)) # numeric vector of means
+
+map_chr(site_lists, ~ paste(unique(.x$transect_id), collapse = ", ")) # transect IDs as one string per site
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 13 · ~10 min
+:::
+
+### `map2()` — two parallel vectors {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**, **`purrr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Multiply each species' total count by a species-specific mean weight using **`map2_dbl()`**, with **`.x`** and **`.y`** as the paired elements.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Length–weight regressions applied per species, matching survey IDs to metadata rows, or pairing lat with lon lists — if AI uses **`map()`** where two vectors align, ask for **`map2()`**.
+:::
+:::
+
+**What you'll learn:** **`map2_dbl(.x, .y, ~ ...)`** walks two vectors in parallel. Inside **`~`**, **`.x`** is the species name, **`.y`** is the total count. **`mean_weight_kg[[.x]]`** looks up weight by name.
+
+```{r quest-13}
+species_tbl <- reef_transects |>
+  group_by(species) |>
+  summarise(total = sum(count), mean_depth = mean(depth_m), .groups = "drop") # one row per species
+
+mean_weight_kg <- c( # named vector: kg per individual by species
+  Parrotfish = 0.35, Surgeonfish = 0.55, Grouper = 2.1,
+  Snapper = 0.8, Damselfish = 0.05
+)
+
+species_tbl |>
+  mutate(
+    biomass_kg = map2_dbl( # parallel walk over two columns
+      species, total, # .x = species name, .y = total count
+      ~ .y * mean_weight_kg[[.x]] # count × species-specific weight
+    )
+  )
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 14 · ~10 min
+:::
+
+### `pmap()` — one row at a time {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**, **`purrr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Classify each transect's depth as shallow / mid / deep with **`pmap_chr()`**, the row-wise mapper.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Complex **`ifelse()`** ladders on many columns — **`pmap()`** is clearer and easier for you (and AI) to test row by row.
+:::
+:::
+
+**What you'll learn:** **`distinct()`** keeps unique rows. **`pmap_chr(list(col), ~ ...)`** passes each row's values as **`..1`**, **`..2`**, …; with one column, **`..1`** or **`.x`** in a one-argument function is the depth value.
+
+```{r quest-14}
+reef_transects |>
+  distinct(transect_id, site, depth_m) |> # one row per transect
+  mutate(
+    depth_class = pmap_chr( # character result, one label per row
+      list(depth_m), # columns to pass row-wise (here, just depth)
+      ~ if (.x < 6) "shallow" else if (.x < 11) "mid" else "deep" # .x is depth for this row
+    )
+  )
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 15 · ~10 min
+:::
+
+### `map_dfr()` — stack many data frames {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`purrr`**, **`ggplot2`**, **`tibble`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Simulate eight transects by mapping **`simulate_transect()`** over IDs and row-binding with **`map_dfr()`**.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Monte Carlo abundance, bootstrap transects, or “what if we sampled again?” — **`map_dfr()`** is the standard simulation stacker.
+:::
+:::
+
+**What you'll learn:** **`rpois(n, lambda)`** draws Poisson counts. **`simulate_transect()`** returns a small tibble. **`map_dfr(ids, fun, ...)`** calls **`fun`** for each ID and **`bind_rows()`** the results. **`sprintf()`** formats ID strings.
+
+```{r quest-15}
+simulate_transect <- function(transect_id, lambda = 8) { # one simulated transect
+  tibble::tibble(
+    transect_id = transect_id, # label this draw
+    count = rpois(5, lambda = lambda) # five species counts at this lambda
+  )
+}
+
+sim_ids <- sprintf("sim_%02d", 1:8) # eight simulation IDs
+
+sim_data <- map_dfr(sim_ids, simulate_transect, lambda = 10) # stack eight tibbles
+
+ggplot(sim_data, aes(x = transect_id, y = count)) + # plot simulated draws
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(title = "Eight simulated transects via map_dfr()")
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 16 · ~10 min
+:::
+
+### `safely()` — errors become data {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`purrr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Wrap a fragile ratio in **`safely()`** so failed divisions return **`error`** instead of stopping your script — then inspect with **`map()`**.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Batch-reading receiver folders, fitting GLMMs per tag, parsing messy CSVs — **`safely()`** + **`map()`** is how you QC 200 files without **`tryCatch()`** soup. Tell AI: *“wrap the reader in `safely()`.”*
+:::
+:::
+
+**What you'll learn:** **`safely(f)`** returns a new function that always gives a list with **`result`** and **`error`**. **`map_lgl()`** maps to logical. **`is.null(.x$error)`** means success.
+
+```{r quest-16}
+safe_ratio <- safely(function(num, den) { # safely wraps our division
+  num / den # fails when den is 0
+})
+
+tests <- list( # three test cases
+  safe_ratio(10, 2), # ok
+  safe_ratio(3, 0), # error captured
+  safe_ratio(NA, 5) # may return NA in result
+)
+
+map_lgl(tests, ~ is.null(.x$error)) # TRUE where no error
+
+map(tests, ~ .x$result) # extract results (NULL where error)
+```
+:::
+
+---
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 17 · ~10 min · Level 4 — Parallel diver
+:::
+
+### `furrr` — parallel `map()` when tasks are independent {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**, **`purrr`**, **`future`**, **`furrr`** — `install.packages(c("future", "furrr"))`.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Fit a Poisson **`glm()`** per species on separate workers with **`future_map()`**, after **`plan(multisession)`**.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Bootstrap CIs, many MCMC restarts, or per-AnimalID home-range models — parallelise only when each task is **independent** ([Bengtsson, 2021](https://doi.org/10.32614/RJ-2021-048)). Ask AI for **`furrr`**, not random **`parallel::mclapply`** on Windows.
+:::
+:::
+
+**What you'll learn:** **`plan(multisession, workers = 2)`** starts a small worker pool. **`future_map()`** like **`map()`** but parallel. **`tryCatch()`** catches errors inside **`fit_poisson`**. **`glm(..., family = poisson)`** fits count vs depth.
+
+```{r quest-17}
+if (requireNamespace("furrr", quietly = TRUE)) { # only run if furrr is installed
+  library(furrr) # parallel purrr
+  plan(multisession, workers = 2) # two background R sessions
+
+  species_splits <- reef_transects |>
+    group_split(species) # one tibble per species
+
+  fit_poisson <- function(df) { # one glm per species table
+    tryCatch(
+      glm(count ~ depth_m, data = df, family = poisson), # Poisson regression
+      error = function(e) NULL # return NULL instead of stopping
+    )
+  }
+
+  models <- future_map(species_splits, fit_poisson) # fit models in parallel
+
+  map_lgl(models, ~ !is.null(.x)) # which species fit successfully?
+} else {
+  message("Install furrr to run Quest 17 locally: install.packages('furrr')")
+}
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 18 · ~10 min
+:::
+
+### `walk()` — map for side effects only {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`dplyr`**, **`purrr`**.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Print a one-line site report for each list element with **`walk()`**, which discards return values (unlike **`map()`**).
+:::
+::: {.quest-learn__row}
+**Apply it later**
+**`ggsave()`** per tag, **`write_csv()`** per trip, **`message()`** QC logs — **`walk2()`** pairs IDs with plots. AI loves **`map()`** for this; **`walk()`** is the correct tool.
+:::
+:::
+
+**What you'll learn:** **`walk(list, ~ ...)`** runs code for each element and returns **`list`** invisibly. **`message()`** prints to the console without stopping. **`paste0()`** builds strings. **`n_distinct()`** counts unique values.
+
+```{r quest-18}
+report_site <- function(df) { # one-line summary string
+  paste0(
+    unique(df$site)[1], # site name
+    ": ",
+    n_distinct(df$transect_id), # how many transects
+    " transects, total count = ",
+    sum(df$count) # sum of counts
+  )
+}
+
+walk(site_lists, ~ message(report_site(.x))) # message each report; return value ignored
+
+invisible(NULL) # chunk returns quietly in HTML
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 19 · ~10 min
+:::
+
+### data.table: `[i, j, by]` {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`data.table`** — `install.packages("data.table")`.
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Compute mean count and **`.N`** (row count) per **`site`** in one **`DT[i, j, by]`** expression.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+Million-row acoustic detection tables — data.table is what you want when AI's dplyr pipeline is correct but slow. Learn to **read** `[ , .(...), by = ...]` even if you write dplyr day-to-day ([Dowle & Srinivasan, 2024](https://doi.org/10.32614/RJ-2024-001)).
+:::
+:::
+
+**What you'll learn:** **`as.data.table()`** converts without copying when possible. Syntax **`DT[i, j, by]`**: **`i`** filters rows (empty = all), **`j`** computes columns, **`by`** groups. **`.(...)`** lists output columns. **`.N`** is group size. **`order(-mean_count)`** sorts descending.
+
+```{r quest-19}
+dt <- as.data.table(reef_transects) # data.table version of our reprex
+
+dt[
+  , # i: no row filter — use all rows
+  .( # j: columns to return
+    mean_count = mean(count), # average count in group
+    n = .N # number of rows in group
+  ),
+  by = site # group by site
+][order(-mean_count)] # sort result by mean_count descending
+```
+:::
+
+::: {.quest-step}
+::: {.quest-step__meta}
+Quest 20 · ~10 min
+:::
+
+### `.SD` — group subsets in data.table {.unnumbered}
+
+<span class="xp-pill">+50 XP</span>
+
+::: {.quest-learn}
+::: {.quest-learn__row}
+**Packages**
+**`data.table`**, **`ggplot2`**, **`plotly`**, **`tibble`** (for **`as_tibble()`** before ggplot).
+:::
+::: {.quest-learn__row}
+**By the end you will**
+Summarise **`mean(count)`** and **`mean(depth_m)`** by **`site`** and **`species`**, then plot grouped bars — same mental model as **`group_by()` + `summarise()`**.
+:::
+::: {.quest-learn__row}
+**Apply it later**
+When AI pastes data.table code into your telemetry pipeline, recognise **`.(site, species)`** as grouping and **`.SD`** as “columns available in this group” — then decide if you keep it or translate to dplyr you can maintain.
+:::
+:::
+
+**What you'll learn:** **`by = .(site, species)`** groups on two columns. **`mean(count)`** in **`j`** is evaluated within each group. **`as_tibble()`** converts for **`ggplot()`**. **`geom_col(position = "dodge")`** places bars side by side.
+
+```{r quest-20}
+dt[
+  ,
+  .(
+    mean_count = mean(count), # average abundance
+    mean_depth = mean(depth_m) # average depth
+  ),
+  by = .(site, species) # cross of site and species
+]
+
+plot_20 <- dt[
+  , .(mean_count = mean(count)), # simpler summary for plotting
+  by = .(site, species)
+] |>
+  as_tibble() |> # ggplot prefers tibble
+  ggplot(aes(x = species, y = mean_count, fill = site)) + # dodged bars by site
+  geom_col(position = "dodge") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1)) + # readable species names
+  labs(title = "Group means — data.table → ggplot")
+
+plotly::ggplotly(plot_20)
+```
+:::
+
+---
+
+## Season 1 complete — you beat the paste buffer
+
+Twenty quests ≈ **1,000 XP**. You can now **read** functional ecology code, **critique** AI output, and **request** the right tool (`map2`, `safely`, `walk`, `[ , , by]`).
+
+### Roadmap · quests 21–100
+
+| Season | Quests | Focus | ~time |
+|--------|--------|--------|-------|
+| 2 | 21–30 | `map_dfc`, list-columns, **`unnest()`** | 1 week |
+| 3 | 31–40 | **`reduce()`**, spatial list columns | 1 week |
+| 4 | 41–50 | **`furrr`** bootstrap CIs per reef | 1 week |
+| 5 | 51–60 | data.table joins on tag metadata | 1 week |
+| 6 | 61–70 | **`possibly()`**, **`quietly()`**, failed models | 1 week |
+| 7 | 71–80 | purrr + **sf** per-animal ranges | 2 weeks |
+| 8 | 81–90 | temporal **`slide()`** patterns | 2 weeks |
+| 9 | 91–95 | your first package function | 1 week |
+| 10 | 96–100 | capstone: refactor telemetry functionally | 1 week |
+
+::: {.callout-important appearance="simple"}
+## Reprex for humans and AI
+
+When you ask for help — from a forum or from a model — paste **data + sessionInfo()**, not a screenshot:
+
+``` r
+set.seed(427)
+# ... reef_transects chunk from above ...
+sessionInfo()
+```
+
+Prompt tip: *“Use my `summarise_abundance()` function; do not introduce new column names.”*
+:::
+
+## References
+
+- Bengtsson, H. (2021). A unifying framework for parallel and distributed processing in R using futures. *The R Journal*, 13(2). <https://doi.org/10.32614/RJ-2021-048>
+- Bransford, J. D., Brown, A. L., & Cocking, R. R. (2000). *How people learn*. National Academies Press.
+- Dowle, M., & Srinivasan, A. (2024). data.table: Extension of `data.frame`. *The R Journal*. <https://doi.org/10.32614/RJ-2024-001>
+- Henry, L., & Wickham, H. (2020). *purrr*: Functional programming tools. <https://purrr.tidyverse.org/>
+- Mayer, R. E. (2009). Multimedia learning (2nd ed.). Cambridge University Press.
+- Roediger, H. L., III, & Butler, A. C. (2011). The critical role of retrieval practice in long-term retention. *Trends in Cognitive Sciences*, 15(1), 20–27. <https://doi.org/10.1016/j.jics.2010.09.004>
+- Rosenshine, B. (2012). Principles of instruction: Research-based strategies that all teachers should know. *American Educator*, 36(1), 12–19. <https://doi.org/10.1177/0031721712452808>
+- Wickham, H. (2014). *Advanced R* — Functional programming. <https://adv-r.hadley.nz/functional-programming.html>
+- Wickham, H., François, R., Henry, L., Müller, K., & Vaughan, D. (2023). dplyr: A grammar of data manipulation. *The R Journal*, 15(3). <https://doi.org/10.32614/RJ-2023-023>
+- The Big Book of R — Functional programming. <https://bigbookofr.com/functional-programming.html>

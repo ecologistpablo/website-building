@@ -6,6 +6,7 @@ project:
     - 404.qmd
     - blog/
     - tutorials/
+    - ai-tutorials/
   resources:
     - images/  # background photos referenced via inline-style url() aren't auto-detected
     # - CNAME  # re-enable once DNS for the custom domain is configured
@@ -25,6 +26,8 @@ website:
         text: Blog
       - href: tutorials/index.qmd
         text: R Tutorials
+      - href: ai-tutorials/index.qmd
+        text: AI Tutorials
     right:
       - icon: instagram
         href: https://www.instagram.com/ecologist.pablo/

@@ -1,0 +1,20 @@
+---
+title: "AI Tutorials"
+subtitle: "Use AI to defeat AI — build the R skills to verify, fix, and out-code the autocomplete."
+listing:
+  contents: posts
+  type: default
+  sort: "date desc"
+  categories: true
+toc: false
+---
+
+::: {.callout-note appearance="simple"}
+## Why this tab exists
+
+Copilot, Cursor, and chatbots can spit out `purrr` pipelines in seconds. They also **confidently wire the wrong function** when your data are grouped, nested, or messy. The fix is not “avoid AI” — it is **know enough to catch the mistake** and steer the next prompt.
+
+These tutorials are deliberately **human-paced** (~10 minutes per quest): segmented practice beats binge-reading generated code ([Mayer, 2009](https://doi.org/10.1016/B978-0-12-374921-5.00009-3)). You will see what packages each quest needs, what you will accomplish, annotated code you can read line-by-line, and where to apply the skill on real ecological data.
+
+**R Tutorials** on this site are full field workflows. **AI Tutorials** are skill drills — gamified reps so AI becomes your fast intern, not your boss.
+:::

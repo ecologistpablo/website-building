@@ -1,0 +1,6 @@
+# Shared defaults for AI tutorial posts — R chunks frozen for CI publishing.
+author: "Pablo Fuenzalida"
+freeze: true
+execute:
+  warning: false
+  message: false
