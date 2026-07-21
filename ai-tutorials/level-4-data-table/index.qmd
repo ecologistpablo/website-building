@@ -248,3 +248,4 @@ ggplot(as.data.frame(out), aes(x = site, y = total, fill = mgmt)) +
   labs(title = "Reef fish totals by site and management", y = "Sum of counts")
 ```
 
+{{< include ../_includes/learn-more-fp.md >}}

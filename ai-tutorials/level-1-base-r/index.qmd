@@ -389,3 +389,4 @@ ggplot(merged, aes(x = reorder(animal_id, detections), y = detections, fill = re
   labs(title = "Detections per tagged animal", x = NULL, y = "Total detections")
 ```
 
+{{< include ../_includes/learn-more-fp.md >}}

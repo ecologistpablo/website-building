@@ -288,3 +288,4 @@ ggplot(zone_summary, aes(x = reef_zone, y = total_det, fill = reef_zone)) +
   labs(title = "Detections by reef zone", y = "Sum of detections")
 ```
 
+{{< include ../_includes/learn-more-fp.md >}}

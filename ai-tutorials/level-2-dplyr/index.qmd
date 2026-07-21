@@ -370,3 +370,4 @@ ggplot(cap, aes(x = reorder(species, total_t), y = total_t, fill = port)) +
   labs(title = "Landings by species and port (2019+)", x = NULL, y = "Tonnes")
 ```
 
+{{< include ../_includes/learn-more-fp.md >}}

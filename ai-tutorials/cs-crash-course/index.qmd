@@ -173,3 +173,5 @@ plan <- list(
 )
 plan
 ```
+
+{{< include ../_includes/learn-more-cs.md >}}
