@@ -9,6 +9,7 @@ project:
     - ai-tutorials/
   resources:
     - images/  # background photos referenced via inline-style url() aren't auto-detected
+    - ai-tutorials/data/
     # - CNAME  # re-enable once DNS for the custom domain is configured
 
 execute:
@@ -40,6 +41,21 @@ website:
       - icon: linkedin
         href: https://www.linkedin.com/in/pablo-alfonso-fuenzalida-miralles-21914b1b2/
         aria-label: LinkedIn
+  sidebar:
+    - id: ai-curriculum
+      title: "Coding curriculum"
+      style: floating
+      collapse-level: 2
+      contents:
+        - ai-tutorials/index.qmd
+        - section: "Level 1 · Base R"
+          contents: ai-tutorials/level-1-base-r/_quest-links.yml
+        - section: "Level 2 · dplyr"
+          contents: ai-tutorials/level-2-dplyr/_quest-links.yml
+        - section: "Level 3 · purrr & furrr"
+          contents: ai-tutorials/level-3-purrr/_quest-links.yml
+        - section: "Level 4 · data.table"
+          contents: ai-tutorials/level-4-data-table/_quest-links.yml
   page-footer:
     border: false
     left: "made with love (and AI) — Pablo Fuenzalida"

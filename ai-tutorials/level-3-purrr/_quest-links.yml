@@ -1,0 +1,41 @@
+- ai-tutorials/level-3-purrr/index.qmd
+- text: "Q1 · Lists as ecology objects"
+  href: ai-tutorials/level-3-purrr/index.qmd#q01
+- text: "Q2 · map() intuition"
+  href: ai-tutorials/level-3-purrr/index.qmd#q02
+- text: "Q3 · map_dbl(), map_chr()"
+  href: ai-tutorials/level-3-purrr/index.qmd#q03
+- text: "Q4 · map2() paired columns"
+  href: ai-tutorials/level-3-purrr/index.qmd#q04
+- text: "Q5 · pmap() row-wise"
+  href: ai-tutorials/level-3-purrr/index.qmd#q05
+- text: "Q6 · map_dfr() simulations"
+  href: ai-tutorials/level-3-purrr/index.qmd#q06
+- text: "Q7 · safely() errors as data"
+  href: ai-tutorials/level-3-purrr/index.qmd#q07
+- text: "Q8 · walk() side effects"
+  href: ai-tutorials/level-3-purrr/index.qmd#q08
+- text: "Q9 · reduce() combine lists"
+  href: ai-tutorials/level-3-purrr/index.qmd#q09
+- text: "Q10 · list-columns intro"
+  href: ai-tutorials/level-3-purrr/index.qmd#q10
+- text: "Q11 · map on telemetry splits"
+  href: ai-tutorials/level-3-purrr/index.qmd#q11
+- text: "Q12 · map on fishery years"
+  href: ai-tutorials/level-3-purrr/index.qmd#q12
+- text: "Q13 · map2 weights & counts"
+  href: ai-tutorials/level-3-purrr/index.qmd#q13
+- text: "Q14 · possibly() softer failures"
+  href: ai-tutorials/level-3-purrr/index.qmd#q14
+- text: "Q15 · quietly() hide messages"
+  href: ai-tutorials/level-3-purrr/index.qmd#q15
+- text: "Q16 · furrr parallel map"
+  href: ai-tutorials/level-3-purrr/index.qmd#q16
+- text: "Q17 · future plans & workers"
+  href: ai-tutorials/level-3-purrr/index.qmd#q17
+- text: "Q18 · map deep on biologging"
+  href: ai-tutorials/level-3-purrr/index.qmd#q18
+- text: "Q19 · compose functions"
+  href: ai-tutorials/level-3-purrr/index.qmd#q19
+- text: "Q20 · purrr capstone"
+  href: ai-tutorials/level-3-purrr/index.qmd#q20

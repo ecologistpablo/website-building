@@ -1,0 +1,41 @@
+- ai-tutorials/level-1-base-r/index.qmd
+- text: "Q1 · Vectors, names, and types"
+  href: ai-tutorials/level-1-base-r/index.qmd#q01
+- text: "Q2 · Subsetting `[`, `$`, `[[`"
+  href: ai-tutorials/level-1-base-r/index.qmd#q02
+- text: "Q3 · if, else, and ifelse"
+  href: ai-tutorials/level-1-base-r/index.qmd#q03
+- text: "Q4 · for loops on real rows"
+  href: ai-tutorials/level-1-base-r/index.qmd#q04
+- text: "Q5 · Writing functions"
+  href: ai-tutorials/level-1-base-r/index.qmd#q05
+- text: "Q6 · apply() on fisheries matrix"
+  href: ai-tutorials/level-1-base-r/index.qmd#q06
+- text: "Q7 · lapply() lists"
+  href: ai-tutorials/level-1-base-r/index.qmd#q07
+- text: "Q8 · sapply() simplification traps"
+  href: ai-tutorials/level-1-base-r/index.qmd#q08
+- text: "Q9 · vapply() safe types"
+  href: ai-tutorials/level-1-base-r/index.qmd#q09
+- text: "Q10 · split() + lapply()"
+  href: ai-tutorials/level-1-base-r/index.qmd#q10
+- text: "Q11 · tapply() group means"
+  href: ai-tutorials/level-1-base-r/index.qmd#q11
+- text: "Q12 · aggregate() classic"
+  href: ai-tutorials/level-1-base-r/index.qmd#q12
+- text: "Q13 · mapply() paired vectors"
+  href: ai-tutorials/level-1-base-r/index.qmd#q13
+- text: "Q14 · set.seed() & sample()"
+  href: ai-tutorials/level-1-base-r/index.qmd#q14
+- text: "Q15 · order() and sorting logic"
+  href: ai-tutorials/level-1-base-r/index.qmd#q15
+- text: "Q16 · unique() & table()"
+  href: ai-tutorials/level-1-base-r/index.qmd#q16
+- text: "Q17 · str(), class(), debugging"
+  href: ai-tutorials/level-1-base-r/index.qmd#q17
+- text: "Q18 · Nested if-else for QC"
+  href: ai-tutorials/level-1-base-r/index.qmd#q18
+- text: "Q19 · Loop vs vectorised choice"
+  href: ai-tutorials/level-1-base-r/index.qmd#q19
+- text: "Q20 · Base R mini-capstone"
+  href: ai-tutorials/level-1-base-r/index.qmd#q20

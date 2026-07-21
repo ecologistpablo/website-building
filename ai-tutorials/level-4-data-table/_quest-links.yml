@@ -1,0 +1,41 @@
+- ai-tutorials/level-4-data-table/index.qmd
+- text: "Q1 · as.data.table() mindset"
+  href: ai-tutorials/level-4-data-table/index.qmd#q01
+- text: "Q2 · [i, j, by] core"
+  href: ai-tutorials/level-4-data-table/index.qmd#q02
+- text: "Q3 · .N and .I"
+  href: ai-tutorials/level-4-data-table/index.qmd#q03
+- text: "Q4 · .SD group columns"
+  href: ai-tutorials/level-4-data-table/index.qmd#q04
+- text: "Q5 · := assign by reference"
+  href: ai-tutorials/level-4-data-table/index.qmd#q05
+- text: "Q6 · setorder() fast sort"
+  href: ai-tutorials/level-4-data-table/index.qmd#q06
+- text: "Q7 · Keys and binary search"
+  href: ai-tutorials/level-4-data-table/index.qmd#q07
+- text: "Q8 · merge() joins"
+  href: ai-tutorials/level-4-data-table/index.qmd#q08
+- text: "Q9 · rbindlist() stack"
+  href: ai-tutorials/level-4-data-table/index.qmd#q09
+- text: "Q10 · dcast() wide"
+  href: ai-tutorials/level-4-data-table/index.qmd#q10
+- text: "Q11 · melt() long"
+  href: ai-tutorials/level-4-data-table/index.qmd#q11
+- text: "Q12 · shift() like lag"
+  href: ai-tutorials/level-4-data-table/index.qmd#q12
+- text: "Q13 · fcase() like case_when"
+  href: ai-tutorials/level-4-data-table/index.qmd#q13
+- text: "Q14 · Grouped chain ;"
+  href: ai-tutorials/level-4-data-table/index.qmd#q14
+- text: "Q15 · fread() big CSV"
+  href: ai-tutorials/level-4-data-table/index.qmd#q15
+- text: "Q16 · Telemetry aggregation"
+  href: ai-tutorials/level-4-data-table/index.qmd#q16
+- text: "Q17 · Fishery by year"
+  href: ai-tutorials/level-4-data-table/index.qmd#q17
+- text: "Q18 · Biologging rolling mean"
+  href: ai-tutorials/level-4-data-table/index.qmd#q18
+- text: "Q19 · .BY in j"
+  href: ai-tutorials/level-4-data-table/index.qmd#q19
+- text: "Q20 · data.table capstone"
+  href: ai-tutorials/level-4-data-table/index.qmd#q20

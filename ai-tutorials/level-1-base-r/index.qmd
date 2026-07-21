@@ -1,0 +1,392 @@
+---
+title: "Level 1 · Base R"
+description: "Twenty quests — vectors, if/else, loops, apply, lapply, split-apply in base R."
+date: 2026-07-21
+sidebar: ai-curriculum
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 2
+    code-fold: false
+freeze: true
+execute:
+  warning: false
+  message: false
+---
+
+## Level 1 · Base R
+
+Marine field data arrive as messy tables long before anyone opens a modelling package. Base R is the grammar underneath **dplyr**, **data.table**, and most AI-generated snippets — if you cannot read vectors, indices, and `apply` family calls, you cannot spot when autocomplete rewired your grouping variable.
+
+This level follows how people actually learn technical skills: connect new ideas to what you already know, practice in short segments, and get quick feedback ([Bransford, Brown & Cocking, 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition) — *How People Learn*). Scientific coding is also hypothesis testing in miniature: you predict what a function should return, run it, and revise ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)). Treat each ~10-minute quest as a controlled experiment on real reef, fishery, acoustic, and biologging tables — not as trivia to memorise.
+
+Use AI as a fast typist **after** you can narrate each line aloud. When a chatbot suggests `sapply()` where you needed `vapply()`, your mental model of return types is what keeps the manuscript honest.
+
+```{r setup}
+#| include: false
+knitr::opts_chunk$set(fig.width=7, fig.height=4.2, dpi=120)
+proj <- getwd()
+if (!file.exists(file.path(proj, "ai-tutorials/data/reef_transects.csv"))) {
+  proj <- normalizePath(file.path(proj, "..", ".."), mustWork = FALSE)
+}
+data_path <- function(name) file.path(proj, "ai-tutorials/data", name)
+reef <- read.csv(data_path("reef_transects.csv"))
+fishery <- read.csv(data_path("fishery_landings.csv"))
+acoustic <- read.csv(data_path("acoustic_detections.csv"))
+biolog <- read.csv(data_path("biologging_burst.csv"))
+```
+
+## Q1 · Vectors, names, and types {#q01}
+
+Ecological summaries start as **atomic vectors** — counts per species, depths, years — before they become data frames. R keeps a `mode` and optional `names()` so you can label transects without a spreadsheet column yet.
+
+Building a named vector trains the same habit you need when checking AI output: inspect structure before chaining functions. If types are wrong (character where you expected numeric), downstream code fails in confusing places.
+
+We pull `count` from the reef transect file into a plain vector so you see what lives underneath `$` and `[` later.
+
+```{r q01}
+counts <- reef$count          # extract the count column as a numeric vector
+sites <- reef$site              # character vector of site names
+names(counts) <- NULL         # ensure no stray names on counts for now
+length(counts)                  # how many species rows in the file
+typeof(counts)                  # internal storage type (double for these counts)
+unique(sites)                 # which reef sites appear in the survey
+```
+
+## Q2 · Subsetting `[`, `$`, `[[` {#q02}
+
+Subsetting is how you **focus** on one transect, one species, or one column without copying the whole dataset. Base R offers three related operators; they look interchangeable until you subset lists or programmatic indices.
+
+On data frames, `$` is readable for fixed column names; `[` handles rows and columns together; `[[` drops a dimension and is essential for list columns later. AI often picks the prettiest form — you verify it matches the shape you need.
+
+Practice on `fishery` landings: keep recent years and selected columns.
+
+```{r q02}
+recent <- fishery[fishery$year >= 2020, ]           # rows where year is 2020 or later
+tons_snapper <- fishery$tonnes[fishery$species == "Snapper"]  # vector of Snapper landings
+cols <- fishery[, c("year", "species", "tonnes")]      # two-dimensional subset (data frame)
+first_port <- fishery[["port"]][1]                      # [[ extracts column then first value
+nrow(recent)                                            # how many landing records matched
+```
+
+## Q3 · if, else, and ifelse {#q03}
+
+Field QC rules are conditional: **if** depth is impossible, flag the row; **else if** count is zero, mark as absent; **else** keep for analysis. Base R expresses that with `if`/`else` for single decisions and `ifelse()` for vectorised branches.
+
+Vectorised `ifelse()` is what AI loves to drop into pipelines — but it evaluates both branches for every element, which bites when branches call slow functions. Knowing when to use scalar `if` trains careful thinking about data length.
+
+Flag acoustic detections with high counts as candidate revisits.
+
+```{r q03}
+high <- acoustic$detections > 4                    # logical vector: TRUE where detections exceed 4
+flag <- ifelse(high, "revisit", "ok")                   # same-length character vector of flags
+table(flag)                                             # tally how many rows in each category
+if (any(is.na(acoustic$detections))) {                # scalar if: only runs when NA present
+  message("Found missing detection counts")             # side effect for QC log
+} else {
+  message("No NA in detections")                        # alternate branch when data clean
+}
+```
+
+## Q4 · for loops on real rows {#q04}
+
+A **`for` loop** repeats code for each index — useful when row logic is sequential (running totals, burst windows) or too awkward to vectorise on day one. Loops are slower on huge data but **transparent**: you can `print()` inside and watch state change.
+
+Students often let AI replace loops with `apply` prematurely. Keeping one explicit loop in your toolkit helps you debug what the vectorised version should do.
+
+Sum biologging depth within each burst id by looping over unique bursts.
+
+```{r q04}
+burst_ids <- unique(biolog$burst_id)                # which dive bursts exist
+mean_depths <- numeric(length(burst_ids))               # pre-allocate results vector
+for (i in seq_along(burst_ids)) {                       # i indexes positions in burst_ids
+  bid <- burst_ids[i]                                   # current burst identifier
+  rows <- biolog$depth_m[biolog$burst_id == bid]        # depths belonging to this burst
+  mean_depths[i] <- mean(rows)                          # store mean for this burst
+}
+names(mean_depths) <- paste0("burst_", burst_ids)       # label output for inspection
+mean_depths                                             # print means per burst
+```
+
+## Q5 · Writing functions {#q05}
+
+A **function** packages a reusable computation with named arguments — the same abstraction AI invokes when it writes `my_helper <- function(x) ...`. Writing one yourself forces you to decide inputs, defaults, and return value.
+
+Good functions are small and testable on one row before scaling. That mirrors Klahr–Dunbar-style testing: one clear prediction, one run, revise.
+
+Encapsulate tonnes-to-kilograms conversion for fishery landings.
+
+```{r q05}
+tonnes_to_kg <- function(tonnes, factor = 1000) {   # factor default matches metric conversion
+  tonnes * factor                                      # vectorised multiply works on whole column
+}
+fishery$kg <- tonnes_to_kg(fishery$tonnes)              # apply to landing weights
+sum(fishery$kg, na.rm = TRUE)                           # total kg landed in file
+tonnes_to_kg(1.5)                                       # scalar check: expect 1500
+```
+
+## Q6 · apply() on fisheries matrix {#q06}
+
+`apply()` moves a function across **margins** of an array — typically rows or columns of a matrix. It is the classic base R substitute for grouped summaries before **dplyr**.
+
+The margin argument `1` means “each row”, `2` means “each column”. AI frequently swaps them; your job is to picture the matrix orientation.
+
+Build a species-by-port matrix of mean tonnes and take column means.
+
+```{r q06}
+sp <- unique(fishery$species)                       # row labels for matrix
+pr <- unique(fishery$port)                              # column labels
+mat <- matrix(0, nrow = length(sp), ncol = length(pr))  # pre-fill with zeros
+rownames(mat) <- sp                                     # name rows for readable output
+colnames(mat) <- pr                                     # name columns
+for (i in seq_along(sp)) {                              # fill cells with mean tonnes
+  for (j in seq_along(pr)) {
+    w <- fishery$tonnes[fishery$species == sp[i] & fishery$port == pr[j]]
+    mat[i, j] <- if (length(w)) mean(w) else NA_real_
+  }
+}
+apply(mat, 2, mean, na.rm = TRUE)                       # mean down rows: one value per port
+```
+
+## Q7 · lapply() lists {#q07}
+
+`lapply()` applies a function to each element of a **list** and always returns a list. That predictability makes it safer than `sapply()` when teaching — and when auditing AI code.
+
+Splitting data by site naturally yields a list of mini data frames; `lapply()` is how you run the same summary on each piece.
+
+Split reef counts by site and compute species richness (unique species per site).
+
+```{r q07}
+by_site <- split(reef, reef$site)                    # list of data frames by site
+richness <- lapply(by_site, function(df) {              # function runs on each site chunk
+  length(unique(df$species))                            # count distinct species names
+})
+richness                                              # list of one integer per site
+unlist(richness)                                        # flatten to named vector
+```
+
+## Q8 · sapply() simplification traps {#q08}
+
+`sapply()` tries to **simplify** `lapply()` output to a vector or matrix when shapes match. Convenient — until one site returns a different length and R silently returns a list or a matrix you did not expect.
+
+When AI uses `sapply()`, ask: “What if one element is length 0?” Training on traps builds skepticism worth more than memorising syntax.
+
+Compute max detections per animal; compare simplified type to `lapply`.
+
+```{r q08}
+by_animal <- split(acoustic$detections, acoustic$animal_id)  # list of detection vectors
+via_sapply <- sapply(by_animal, max)                    # simplified numeric vector if uniform
+via_lapply <- lapply(by_animal, max)                    # always a list
+str(via_sapply)                                         # inspect simplified structure
+str(via_lapply)                                         # compare: list of scalars
+```
+
+## Q9 · vapply() safe types {#q09}
+
+`vapply()` is like `sapply()` but you declare **`FUN.VALUE`** — a template of the return type and length. If the function deviates, R errors immediately instead of coercing quietly.
+
+That explicit contract is perfect QC culture for ecological scripts: no silent recycling of wrong-length vectors into a matrix.
+
+Return numeric total detections per receiver with a enforced scalar template.
+
+```{r q09}
+by_receiver <- split(acoustic$detections, acoustic$receiver)   # group detections
+totals <- vapply(                                       # vapply needs FUN.VALUE prototype
+  by_receiver,
+  sum,
+  FUN.VALUE = numeric(1)                                # each element must be length-1 numeric
+)
+sort(totals, decreasing = TRUE)                         # which receivers saw most pings
+```
+
+## Q10 · split() + lapply() {#q10}
+
+**`split()`** cuts a vector (or column) by a factor-like grouping variable; paired with **`lapply()`** it is the base R ancestor of `group_by()` + `summarise()`.
+
+Understanding this pair helps you read older ecology code and translate AI suggestions into equivalent base R when packages are unavailable.
+
+Split reef `count` by `species` and get mean abundance per species.
+
+```{r q10}
+counts_by_sp <- split(reef$count, reef$species)     # list of count vectors per species
+mean_counts <- lapply(counts_by_sp, mean)               # mean within each species
+as.data.frame(unlist(mean_counts))                     # quick rectangular view
+# named vector of means:
+sapply(counts_by_sp, mean)
+```
+
+## Q11 · tapply() group means {#q11}
+
+`tapply()` applies a function to subsets defined by a **factor-like index** and returns a compact array — often the fastest mental path to “mean depth by site”.
+
+Arguments are `tapply(X, INDEX, FUN)`. AI sometimes nests `tapply` inside `tapply`; knowing the flat form keeps you grounded.
+
+Mean landing tonnes by species using fishery data.
+
+```{r q11}
+tapply(                                               # classic split-apply-combine
+  fishery$tonnes,                                       # numeric vector to summarise
+  fishery$species,                                      # grouping index
+  mean                                                  # function applied per group
+)
+```
+
+## Q12 · aggregate() classic {#q12}
+
+`aggregate()` produces **grouped summaries as a data frame**, friendlier for merging than raw `tapply` arrays. Formula interface `y ~ x` reads like statistical notation.
+
+It is still base R — no **dplyr** required — and appears in legacy fisheries reports you may need to reproduce.
+
+Total detections by reef zone from acoustic telemetry.
+
+```{r q12}
+agg_zone <- aggregate(                              # formula: response ~ grouping
+  detections ~ reef_zone,                               # sum detections per zone
+  data = acoustic,
+  FUN = sum
+)
+agg_zone                                                # one row per zone
+```
+
+## Q13 · mapply() paired vectors {#q13}
+
+`mapply()` is **multivariate `apply`**: pass several vectors of equal length, and the function receives the i-th element from each. Think paired depth and pitch rows within a burst.
+
+It generalises to `Map()` in base R and `map2()` in **purrr** later — same mental picture.
+
+Compute absolute pitch change between consecutive seconds inside burst 1.
+
+```{r q13}
+b1 <- biolog[biolog$burst_id == 1, ]               # restrict to one burst
+pitch <- b1$pitch_deg                                   # pitch vector in time order
+secs <- b1$seconds                                      # matching time index
+d_pitch <- mapply(function(a, b) abs(b - a),            # pairwise function
+                  pitch[-length(pitch)],                 # earlier second
+                  pitch[-1])                             # next second
+head(d_pitch)                                           # first few step changes
+```
+
+## Q14 · set.seed() & sample() {#q14}
+
+Reproducible ecology needs **`set.seed()`** before **`sample()`** so subsampling transects or simulating null models can be re-run by reviewers — and matched when you paste reprexes into AI chats.
+
+Sampling without a fixed seed is not wrong for field work, but wrong for teaching and debugging.
+
+Draw a reproducible random subset of transect ids for double-checking counts.
+
+```{r q14}
+set.seed(20260721)                                  # lock RNG for this quest
+ids <- unique(reef$transect_id)                         # all transect labels
+audit_ids <- sample(ids, size = 4)                      # pick 4 transects without replacement
+reef[reef$transect_id %in% audit_ids, ]                 # rows selected for audit
+```
+
+## Q15 · order() and sorting logic {#q15}
+
+Sorting in R is usually **`order()`**, not `sort()` on the whole table. `order()` returns **indices** you use to reorder multiple columns consistently — critical when AI sorts one column but leaves others aligned wrong.
+
+Negative indices in `order()` flip descending sort.
+
+Sort fishery rows by tonnes within year.
+
+```{r q15}
+ord <- order(fishery$year, -fishery$tonnes)        # year ascending, tonnes descending
+fishery_sorted <- fishery[ord, ]                        # reorder all columns together
+head(fishery_sorted, 8)                                 # inspect top rows
+```
+
+## Q16 · unique() & table() {#q16}
+
+`unique()` lists distinct values; **`table()`** cross-tabulates frequencies — the fastest check on whether AI duplicated join keys or miscoded species names.
+
+Always run `table()` on grouping columns before trusting grouped summaries.
+
+Tabulate animals and receivers in the acoustic file.
+
+```{r q16}
+unique(acoustic$animal_id)                          # how many tagged animals
+table(acoustic$reef_zone)                               # detections rows per zone label
+table(acoustic$animal_id, acoustic$reef_zone)           # two-way contingency
+```
+
+## Q17 · str(), class(), debugging {#q17}
+
+**`str()`** compactly shows structure; **`class()`** and **`typeof()`** distinguish data.frame vs tibble vs list. These are the first commands to run when AI output “looks wrong” but does not error.
+
+Debugging is hypothesis revision — predict structure, compare to `str()`, adjust.
+
+Inspect biologging columns before computing summaries.
+
+```{r q17}
+str(biolog)                                           # column types and row count
+class(biolog)                                           # should be data.frame
+sapply(biolog, class)                                   # class of each column
+summary(biolog$depth_m)                                 # quick numeric QC
+```
+
+## Q18 · Nested if-else for QC {#q18}
+
+Nested **`if`/`else`** handles **priority rules** where only one label should apply — e.g., missing depth overrides high-count flags. Nested logic mirrors decision trees in field protocols.
+
+Keep branches shallow; if nesting exceeds three levels, consider a lookup table — but nested `if` remains the readable skeleton.
+
+Assign QC labels to reef rows by depth and count.
+
+```{r q18}
+qc <- character(nrow(reef))                         # pre-allocate label vector
+for (i in seq_len(nrow(reef))) {                        # row-wise loop for clarity
+  if (is.na(reef$depth_m[i])) {                         # missing depth first priority
+    qc[i] <- "missing_depth"
+  } else if (reef$depth_m[i] < 0) {                     # impossible depth
+    qc[i] <- "bad_depth"
+  } else if (reef$count[i] == 0) {                     # true zero count
+    qc[i] <- "zero_count"
+  } else {
+    qc[i] <- "ok"                                       # passes basic QC
+  }
+}
+table(qc)                                               # summary of flags
+```
+
+## Q19 · Loop vs vectorised choice {#q19}
+
+Vectorised operations let R push work to compiled C loops — faster and often clearer for element-wise math. **`for` loops** still win for complex state, irregular sequences, or teaching.
+
+Compare both on the same task and time only when data are large; for small reef tables, readability dominates.
+
+Centre pitch within each burst: vectorised subtract vs loop.
+
+```{r q19}
+# vectorised approach using ave() — mean pitch per burst_id
+centred <- biolog$pitch_deg - ave(biolog$pitch_deg, biolog$burst_id, FUN = mean)
+# loop approach for same result (first 50 rows demo)
+loop_cent <- biolog$pitch_deg
+for (i in 1:50) {
+  bid <- biolog$burst_id[i]
+  loop_cent[i] <- biolog$pitch_deg[i] - mean(biolog$pitch_deg[biolog$burst_id == bid])
+}
+all.equal(loop_cent, centred[1:50])                     # methods should agree
+```
+
+## Q20 · Base R mini-capstone {#q20}
+
+Capstone quests integrate split-apply-combine, functions, and QC without packages. This mirrors a real morning: import CSV, flag issues, summarise by stratum, export a small table for your PI.
+
+Before asking AI to “clean this dataset”, run this checklist yourself — then use AI for boilerplate you can verify.
+
+Pipeline: flag acoustic rows, aggregate by animal, join unique zones, plot top totals.
+
+```{r q20}
+library(ggplot2)                                      # only for quick plot at end
+ac <- acoustic                                          # working copy
+ac$hot <- ac$detections >= 5                            # logical hot-spot flag
+by_an <- aggregate(detections ~ animal_id, data = ac, FUN = sum)  # totals per tag
+zone <- aggregate(reef_zone ~ animal_id, data = ac, FUN = function(x) unique(x)[1])
+merged <- merge(by_an, zone, by = "animal_id")          # base R join
+ggplot(merged, aes(x = reorder(animal_id, detections), y = detections, fill = reef_zone)) +
+  geom_col() +                                          # bar chart of totals
+  coord_flip() +                                        # readable animal labels
+  labs(title = "Detections per tagged animal", x = NULL, y = "Total detections")
+```
+

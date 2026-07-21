@@ -1,20 +1,38 @@
 ---
 title: "AI Tutorials"
-subtitle: "Use AI to defeat AI — build the R skills to verify, fix, and out-code the autocomplete."
+subtitle: "A step-by-step coding curriculum — use AI to defeat AI."
+sidebar: ai-curriculum
 listing:
-  contents: posts
-  type: default
-  sort: "date desc"
-  categories: true
+  contents:
+    - level-1-base-r/index.qmd
+    - level-2-dplyr/index.qmd
+    - level-3-purrr/index.qmd
+    - level-4-data-table/index.qmd
+  type: grid
+  sort: title asc
+  fields: [title, description]
+  grid-columns: 2
 toc: false
 ---
 
-::: {.callout-note appearance="simple"}
-## Why this tab exists
+## Why this curriculum exists
 
-Copilot, Cursor, and chatbots can spit out `purrr` pipelines in seconds. They also **confidently wire the wrong function** when your data are grouped, nested, or messy. The fix is not “avoid AI” — it is **know enough to catch the mistake** and steer the next prompt.
+Models can draft R faster than you can type. They also **confidently confuse** `map()` with `map2()`, drop grouping variables, or simplify lists in ways that break your reef, fishery, telemetry, or biologging pipeline. The answer is not to avoid AI — it is to **think clearly enough** to catch the error before it becomes a supplementary figure.
 
-These tutorials are deliberately **human-paced** (~10 minutes per quest): segmented practice beats binge-reading generated code ([Mayer, 2009](https://doi.org/10.1016/B978-0-12-374921-5.00009-3)). You will see what packages each quest needs, what you will accomplish, annotated code you can read line-by-line, and where to apply the skill on real ecological data.
+That kind of clarity is what education research calls **transfer**: you learn a pattern in one context (synthetic transects) and apply it in another (IMOS detections, CATS bursts, catch records). *How People Learn* emphasises connecting new ideas to prior knowledge and getting rapid feedback ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). Doing science with code is the same loop as doing science in the lab: **predict → execute → compare → revise** ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).
 
-**R Tutorials** on this site are full field workflows. **AI Tutorials** are skill drills — gamified reps so AI becomes your fast intern, not your boss.
+::: {.quest-hub}
+<p class="quest-hub__title">Four levels · 80 quests · ~10 minutes each</p>
+<p class="quest-hub__hint">Open a level from the grid below or use the **Coding curriculum** sidebar to jump to any quest. Finish Level 1 before Level 3 — purrr builds on the split–apply habits you learn in base R and dplyr.</p>
 :::
+
+| Level | Focus | You will… |
+|-------|--------|-----------|
+| **1 · Base R** | Vectors, `if`/`else`, loops, `apply` family | Read any AI script without panicking at `[` or `lapply` |
+| **2 · dplyr** | `mutate`, `group_by`, `lead`/`lag`, joins, pivots | Reshape ecological tables before modelling |
+| **3 · purrr & furrr** | `map`, `walk`, `safely`, parallel maps | Replace fragile loops on tags, years, and bursts |
+| **4 · data.table** | `[i, j, by]`, joins, `shift`, `fcase` | Handle large detection tables with less memory |
+
+**R Tutorials** on this site are full workflows (telemetry, dive logs). **AI Tutorials** are the **coding curriculum** — reps that train critical thinking, not copy-paste.
+
+Pick **Level 1 · Base R** if AI keeps handing you `apply` and you nod but cannot rewrite it.

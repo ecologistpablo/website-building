@@ -1,0 +1,41 @@
+- ai-tutorials/level-2-dplyr/index.qmd
+- text: "Q1 · select() & rename()"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q01
+- text: "Q2 · filter() rows"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q02
+- text: "Q3 · mutate() new columns"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q03
+- text: "Q4 · transmute() keep only new"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q04
+- text: "Q5 · arrange() sort rows"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q05
+- text: "Q6 · distinct() unique rows"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q06
+- text: "Q7 · slice() row index"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q07
+- text: "Q8 · group_by() + summarise()"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q08
+- text: "Q9 · count() quick tables"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q09
+- text: "Q10 · lead() & lag() time series"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q10
+- text: "Q11 · if_else() & case_when()"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q11
+- text: "Q12 · across() many columns"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q12
+- text: "Q13 · group_modify() custom tables"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q13
+- text: "Q14 · mutate(.by = )"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q14
+- text: "Q15 · left_join() metadata"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q15
+- text: "Q16 · bind_rows() stack surveys"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q16
+- text: "Q17 · pivot_longer()"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q17
+- text: "Q18 · pivot_wider()"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q18
+- text: "Q19 · replace_na() & coalesce()"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q19
+- text: "Q20 · dplyr capstone pipeline"
+  href: ai-tutorials/level-2-dplyr/index.qmd#q20
