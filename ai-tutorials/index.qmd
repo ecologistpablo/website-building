@@ -1,6 +1,6 @@
 ---
 title: "AI R Tutorials"
-subtitle: "Written with AI — learn to code without leaning on it."
+subtitle: "Written by AI — to teach you how to code without AI."
 sidebar: ai-curriculum
 listing:
   contents:
@@ -14,7 +14,7 @@ format:
     page-layout: article
 ---
 
-<p class="ai-tagline">Code first; tools second. ~10 min quests, real ecology CSVs, tight comments on every line.</p>
+<p class="ai-tagline">To use AI for coding, learn to code first. ~10 min quests, shared ecology CSVs, one space then <code># comment</code>.</p>
 
 Sidebar = full quest list. Or pick a tab:
 
