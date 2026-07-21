@@ -218,6 +218,17 @@ html { overflow-x: hidden; }  // belt-and-braces against the full-bleed 100vw br
   border: 1px solid var(--border);
   background: var(--card-bg);
 }
+.ai-tagline {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 720px;
+  margin: 0 0 32px;
+  padding: 16px 20px;
+  border-left: 3px solid var(--ocean);
+  background: var(--surface);
+  border-radius: 0 12px 12px 0;
+}
 .quest-learn__row strong {
   display: block;
   font-size: .72rem;

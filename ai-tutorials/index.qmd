@@ -1,38 +1,74 @@
 ---
 title: "AI Tutorials"
-subtitle: "A step-by-step coding curriculum — use AI to defeat AI."
+subtitle: "Written with AI — to teach you how to code without leaning on it."
 sidebar: ai-curriculum
 listing:
   contents:
-    - level-1-base-r/index.qmd
-    - level-2-dplyr/index.qmd
-    - level-3-purrr/index.qmd
-    - level-4-data-table/index.qmd
-  type: grid
+    - cs-crash-course/index.qmd
+  type: default
   sort: title asc
   fields: [title, description]
-  grid-columns: 2
 toc: false
+format:
+  html:
+    page-layout: article
 ---
 
-## Why this curriculum exists
+<p class="ai-tagline">To understand how to code <em>with</em> AI, you need to understand how to code <em>first</em>. These tracks are for learning R and computer science properly — short quests, real ecology tables, line-by-line comments.</p>
 
-Models can draft R faster than you can type. They also **confidently confuse** `map()` with `map2()`, drop grouping variables, or simplify lists in ways that break your reef, fishery, telemetry, or biologging pipeline. The answer is not to avoid AI — it is to **think clearly enough** to catch the error before it becomes a supplementary figure.
+## Choose a track
 
-That kind of clarity is what education research calls **transfer**: you learn a pattern in one context (synthetic transects) and apply it in another (IMOS detections, CATS bursts, catch records). *How People Learn* emphasises connecting new ideas to prior knowledge and getting rapid feedback ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). Doing science with code is the same loop as doing science in the lab: **predict → execute → compare → revise** ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).
+Use the **Coding curriculum** sidebar to jump to any quest, or open a tab below.
 
-::: {.quest-hub}
-<p class="quest-hub__title">Four levels · 80 quests · ~10 minutes each</p>
-<p class="quest-hub__hint">Open a level from the grid below or use the **Coding curriculum** sidebar to jump to any quest. Finish Level 1 before Level 3 — purrr builds on the split–apply habits you learn in base R and dplyr.</p>
+## Functional programming
+
+::: {.panel-tabset}
+
+### Beginner · Base R
+
+**20 quests · ~10 min each**
+
+Vectors, `if`/`else`, `for` loops, the **`apply`** family, **`split` + `lapply`**, and a base R capstone. Start here if dplyr and purrr still feel like magic.
+
+[Open Beginner track →](level-1-base-r/index.qmd)
+
+### Intermediate · dplyr
+
+**20 quests**
+
+`mutate`, `filter`, `group_by`, `lead`/`lag`, joins, pivots — the verbs you use on reef, fishery, and telemetry tables every week.
+
+[Open dplyr track →](level-2-dplyr/index.qmd)
+
+### Intermediate · purrr & furrr
+
+**20 quests**
+
+Lists, **`map`**, **`map2`**, **`safely`**, **`walk`**, and optional parallel **`furrr`**. Finish Base R and most of dplyr first.
+
+[Open purrr track →](level-3-purrr/index.qmd)
+
+### Advanced · data.table
+
+**20 quests**
+
+`[i, j, by]`, `.SD`, joins, **`shift`**, **`fcase`** — when tables get large and you want one expressive syntax.
+
+[Open data.table track →](level-4-data-table/index.qmd)
+
 :::
 
-| Level | Focus | You will… |
-|-------|--------|-----------|
-| **1 · Base R** | Vectors, `if`/`else`, loops, `apply` family | Read any AI script without panicking at `[` or `lapply` |
-| **2 · dplyr** | `mutate`, `group_by`, `lead`/`lag`, joins, pivots | Reshape ecological tables before modelling |
-| **3 · purrr & furrr** | `map`, `walk`, `safely`, parallel maps | Replace fragile loops on tags, years, and bursts |
-| **4 · data.table** | `[i, j, by]`, joins, `shift`, `fcase` | Handle large detection tables with less memory |
+## Computer science crash course
 
-**R Tutorials** on this site are full workflows (telemetry, dive logs). **AI Tutorials** are the **coding curriculum** — reps that train critical thinking, not copy-paste.
+**20 quests · same format · mostly concepts + light R**
 
-Pick **Level 1 · Base R** if AI keeps handing you `apply` and you nod but cannot rewrite it.
+Types, memory, algorithms, debugging, reproducibility, and how to plan an analysis before you write code. Pairs well with any functional programming tab.
+
+[Open CS crash course →](cs-crash-course/index.qmd)
+
+::: {.quest-hub}
+<p class="quest-hub__title">100 quests across five modules</p>
+<p class="quest-hub__hint"><strong>Human R Tutorials</strong> on this site are full field workflows (telemetry, dive logs). <strong>AI Tutorials</strong> are the structured curriculum — practice until the pattern is yours, then use any tool you like for speed.</p>
+:::
+
+Learning works best in short segments with feedback ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). Treat each quest like a lab exercise: predict the output, run the chunk, revise your mental model ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).

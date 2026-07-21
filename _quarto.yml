@@ -26,7 +26,7 @@ website:
       - href: blog/index.qmd
         text: Blog
       - href: tutorials/index.qmd
-        text: R Tutorials
+        text: Human R Tutorials
       - href: ai-tutorials/index.qmd
         text: AI Tutorials
     right:
@@ -48,14 +48,18 @@ website:
       collapse-level: 2
       contents:
         - ai-tutorials/index.qmd
-        - section: "Level 1 · Base R"
-          contents: ai-tutorials/level-1-base-r/_quest-links.yml
-        - section: "Level 2 · dplyr"
-          contents: ai-tutorials/level-2-dplyr/_quest-links.yml
-        - section: "Level 3 · purrr & furrr"
-          contents: ai-tutorials/level-3-purrr/_quest-links.yml
-        - section: "Level 4 · data.table"
-          contents: ai-tutorials/level-4-data-table/_quest-links.yml
+        - section: "Functional programming"
+          contents:
+            - section: "Beginner · Base R"
+              contents: ai-tutorials/level-1-base-r/_quest-links.yml
+            - section: "Intermediate · dplyr"
+              contents: ai-tutorials/level-2-dplyr/_quest-links.yml
+            - section: "Intermediate · purrr & furrr"
+              contents: ai-tutorials/level-3-purrr/_quest-links.yml
+            - section: "Advanced · data.table"
+              contents: ai-tutorials/level-4-data-table/_quest-links.yml
+        - section: "Computer science crash course"
+          contents: ai-tutorials/cs-crash-course/_quest-links.yml
   page-footer:
     border: false
     left: "made with love (and AI) — Pablo Fuenzalida"

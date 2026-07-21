@@ -1,6 +1,6 @@
 ---
-title: "Level 1 · Base R"
-description: "Twenty quests — vectors, if/else, loops, apply, lapply, split-apply in base R."
+title: "Functional programming · Beginner (Base R)"
+description: "Beginner track — twenty quests on vectors, if/else, loops, and the apply family in base R."
 date: 2026-07-21
 sidebar: ai-curriculum
 format:
@@ -15,15 +15,15 @@ execute:
   message: false
 ---
 
-## Level 1 · Base R
+## Functional programming · Beginner (Base R)
 
-Marine field data arrive as messy tables long before anyone opens a modelling package. Base R is the grammar underneath **dplyr**, **data.table**, and most AI-generated snippets — if you cannot read vectors, indices, and `apply` family calls, you cannot spot when autocomplete rewired your grouping variable.
+Marine field data arrive as messy tables long before anyone opens a modelling package. Base R is the grammar underneath **dplyr**, **data.table**, and most scripts you will read in labs and papers — vectors, indices, and the **`apply`** family are worth knowing cold.
 
-This level follows how people actually learn technical skills: connect new ideas to what you already know, practice in short segments, and get quick feedback ([Bransford, Brown & Cocking, 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition) — *How People Learn*). Scientific coding is also hypothesis testing in miniature: you predict what a function should return, run it, and revise ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)). Treat each ~10-minute quest as a controlled experiment on real reef, fishery, acoustic, and biologging tables — not as trivia to memorise.
+This level follows how people actually learn technical skills: connect new ideas to what you already know, practice in short segments, and get quick feedback ([Bransford, Brown & Cocking, 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition) — *How People Learn*). Scientific coding is also hypothesis testing in miniature: you predict what a function should return, run it, and revise ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)). Treat each ~10-minute quest as a controlled experiment on reef, fishery, acoustic, and biologging tables — not as trivia to memorise.
 
-Use AI as a fast typist **after** you can narrate each line aloud. When a chatbot suggests `sapply()` where you needed `vapply()`, your mental model of return types is what keeps the manuscript honest.
+Narrate each line aloud as you run it. That habit is what turns copied code into **your** code.
 
-On **harder quests** (loops, `apply`, `split`, nested logic), you will see **two or three short examples** on different tables — reef, fishery, acoustic, biologging — so the pattern sticks before you mix datasets yourself.
+On **harder quests** (loops, `apply`, `split`, nested logic), you will see **two or three short examples** on different tables so the pattern sticks before you mix datasets yourself.
 
 ```{r setup}
 #| include: false

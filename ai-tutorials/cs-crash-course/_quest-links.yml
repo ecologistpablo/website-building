@@ -1,0 +1,41 @@
+- ai-tutorials/cs-crash-course/index.qmd
+- text: "Q1 · Programs, data, and R"
+  href: ai-tutorials/cs-crash-course/index.qmd#q01
+- text: "Q2 · Assignment and names"
+  href: ai-tutorials/cs-crash-course/index.qmd#q02
+- text: "Q3 · Types and coercion"
+  href: ai-tutorials/cs-crash-course/index.qmd#q03
+- text: "Q4 · Memory: copy vs modify"
+  href: ai-tutorials/cs-crash-course/index.qmd#q04
+- text: "Q5 · Files and paths"
+  href: ai-tutorials/cs-crash-course/index.qmd#q05
+- text: "Q6 · Functions as contracts"
+  href: ai-tutorials/cs-crash-course/index.qmd#q06
+- text: "Q7 · Boolean logic"
+  href: ai-tutorials/cs-crash-course/index.qmd#q07
+- text: "Q8 · Algorithms: find and sort"
+  href: ai-tutorials/cs-crash-course/index.qmd#q08
+- text: "Q9 · Big-O intuition for n rows"
+  href: ai-tutorials/cs-crash-course/index.qmd#q09
+- text: "Q10 · Vectors, lists, tables"
+  href: ai-tutorials/cs-crash-course/index.qmd#q10
+- text: "Q11 · Encoding and factors"
+  href: ai-tutorials/cs-crash-course/index.qmd#q11
+- text: "Q12 · Reproducibility & seeds"
+  href: ai-tutorials/cs-crash-course/index.qmd#q12
+- text: "Q13 · Debugging strategies"
+  href: ai-tutorials/cs-crash-course/index.qmd#q13
+- text: "Q14 · Version control mindset"
+  href: ai-tutorials/cs-crash-course/index.qmd#q14
+- text: "Q15 · DRY and small functions"
+  href: ai-tutorials/cs-crash-course/index.qmd#q15
+- text: "Q16 · Validate inputs early"
+  href: ai-tutorials/cs-crash-course/index.qmd#q16
+- text: "Q17 · Composition and pipes"
+  href: ai-tutorials/cs-crash-course/index.qmd#q17
+- text: "Q18 · Reading error messages"
+  href: ai-tutorials/cs-crash-course/index.qmd#q18
+- text: "Q19 · Documentation & help()"
+  href: ai-tutorials/cs-crash-course/index.qmd#q19
+- text: "Q20 · CS capstone plan"
+  href: ai-tutorials/cs-crash-course/index.qmd#q20

@@ -1,6 +1,6 @@
 ---
-title: "Level 3 · purrr & furrr"
-description: "Twenty quests — map, safely, walk, parallel furrr on telemetry and fisheries lists."
+title: "Functional programming · Intermediate (purrr & furrr)"
+description: "Intermediate track — twenty quests on map, safely, walk, and parallel furrr."
 date: 2026-07-21
 sidebar: ai-curriculum
 format:
@@ -15,15 +15,15 @@ execute:
   message: false
 ---
 
-## Level 3 · purrr & furrr
+## Functional programming · Intermediate (purrr & furrr)
 
-Functional programming maps **functions over structures** instead of hand-writing loops. **purrr** makes that explicit: every map returns a predictable object type, which is exactly what you need when AI hands you a nested list and says “just unlist it.”
+Functional programming maps **functions over structures** instead of hand-writing loops. **purrr** makes that explicit: every map returns a predictable object type — essential when your data are split by site, tag, year, or burst.
 
-Lists show up constantly in ecology — receivers nested in arrays, burst segments, model outputs per transect. Short quests with immediate output mirror how working memory stays manageable during learning ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). You will feel when `map2()` is correct and when the chatbot should have used `pmap()`.
+Lists show up constantly in ecology — receivers nested in arrays, burst segments, model outputs per transect. Short quests with immediate output mirror how working memory stays manageable during learning ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). You will learn when **`map2()`** fits and when **`pmap()`** is the right tool.
 
-Parallel **`furrr`** is optional horsepower after correctness. Get the serial map right, then scale — the same scientific habit: validate on one unit before running the whole fleet.
+Parallel **`furrr`** is optional horsepower after correctness. Get the serial map right, then scale — the same habit as validating one tag before running the whole array.
 
-On dense quests (**`map`**, **`map2`**, **`pmap`**, **`safely`**, **`map_dfr`**), you will practice the same function on **two or three ecological tables** so the list structure — not the column names — is what you remember.
+On dense quests (**`map`**, **`map2`**, **`pmap`**, **`safely`**, **`map_dfr`**), you will practice the same function on **two or three ecological tables**.
 
 ```{r setup}
 #| include: false

@@ -1,6 +1,6 @@
 ---
-title: "Level 2 · dplyr"
-description: "Twenty quests — mutate, group_by, lead/lag, joins, pivots, and tidy pipelines."
+title: "Functional programming · Intermediate (dplyr)"
+description: "Intermediate track — twenty quests on mutate, group_by, lead/lag, joins, and pivots."
 date: 2026-07-21
 sidebar: ai-curriculum
 format:
@@ -15,15 +15,15 @@ execute:
   message: false
 ---
 
-## Level 2 · dplyr
+## Functional programming · Intermediate (dplyr)
 
-**dplyr** verbs read like sentences: select columns, filter rows, mutate new variables, summarise within groups. AI generates them fluently — and sometimes puts `filter()` after `summarise()` or forgets grouping persists. This level builds verb-by-verb mental models so you can reorder a broken pipeline in your head.
+**dplyr** verbs read like sentences: select columns, filter rows, mutate new variables, summarise within groups. This level builds verb-by-verb mental models so you can read, write, and fix pipelines on reef, fishery, acoustic, and biologging data.
 
-Learning progresses when you connect new syntax to problems you already solved in base R ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). Each quest (~10 minutes) ends with a prediction you can check: row counts, column names, or a ggplot you recognise from the field.
+Learning progresses when you connect new syntax to problems you already solved in base R ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). Each quest (~10 minutes) ends with a prediction you can check: row counts, column names, or a plot you recognise from the field.
 
-Treat **dplyr** as a contract with your data: every verb documents an intent. When autocomplete proposes five chained steps, you decide whether each step is necessary — that is the scientific reasoning habit Klahr and Dunbar describe in experiment design, applied to code.
+Treat **dplyr** as a contract with your data: every verb documents an intent. Choosing which steps belong in a pipeline is the same scientific reasoning habit Klahr and Dunbar describe in experiment design — applied to code.
 
-Harder verbs (**`group_by`**, **`lead`/`lag`**, **`case_when`**, **`across`**, joins, pivots) include **multiple worked examples** on reef, fishery, acoustic, and biologging tables so you recognise the verb, not just one homework dataset.
+Harder verbs (**`group_by`**, **`lead`/`lag`**, **`case_when`**, **`across`**, joins, pivots) include **multiple worked examples** on different ecological tables.
 
 ```{r setup}
 #| include: false

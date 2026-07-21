@@ -1,6 +1,6 @@
 ---
-title: "Level 4 · data.table"
-description: "Twenty quests — [i,j,by], joins, shift, fcase, and fast aggregation on big tables."
+title: "Functional programming · Advanced (data.table)"
+description: "Advanced track — twenty quests on [i,j,by], joins, shift, and fast aggregation."
 date: 2026-07-21
 sidebar: ai-curriculum
 format:
@@ -15,15 +15,15 @@ execute:
   message: false
 ---
 
-## Level 4 · data.table
+## Functional programming · Advanced (data.table)
 
-**data.table** treats columns as memory you reference, not copy — syntax `[i, j, by]` expresses filter, compute, and group in one line. AI often mixes data.table with dplyr in one script; experienced analysts pick one dialect per workflow for readability.
+**data.table** treats columns as memory you reference, not copy — syntax **`[i, j, by]`** expresses filter, compute, and group in one line. Experienced analysts often pick one dialect per workflow (**dplyr** *or* **data.table**) for readability.
 
-Keys, binary search, and `:=` assignment by reference are performance tools, but the deeper win is explicit grouping via `by` and `.SD`. Predict row counts per group before running code — the same hypothesis-check habit from scientific reasoning practice ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).
+Keys, binary search, and **`:=`** assignment by reference are performance tools; the deeper win is explicit grouping via **`by`** and **`.SD`**. Predict row counts per group before running code — the same hypothesis-check habit from scientific reasoning ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).
 
-When CSVs grow large, **`fread()`** replaces **`read.csv()`**; we note it in a quest but keep setup on `read.csv()` so renders stay portable.
+When CSVs grow large, **`fread()`** replaces **`read.csv()`**; we note it in a quest but keep setup on **`read.csv()`** so renders stay portable.
 
-Core syntax quests (**`[i, j, by]`**, **`.SD`**, **`merge`**, **`shift`**, **`fcase`**) repeat on **reef, fishery, acoustic, and biologging** tables so you read the expression, not one memorised column name.
+Core syntax quests repeat on **reef, fishery, acoustic, and biologging** tables so you read the expression, not one memorised column name.
 
 ```{r setup}
 #| include: false
