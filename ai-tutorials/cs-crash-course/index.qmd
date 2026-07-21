@@ -1,6 +1,6 @@
 ---
 title: "Computer science crash course"
-description: "Twenty quests — CS principles for R ecologists: types, memory, algorithms, debugging, reproducibility."
+description: "CS crash course"
 date: 2026-07-21
 sidebar: ai-curriculum
 format:
@@ -16,10 +16,7 @@ execute:
 ---
 
 ## Computer science crash course for ecologists
-
-You do not need a computer science degree to analyse reef counts or tag data — but a **thin layer of CS thinking** makes everything else click: why `factor` levels matter, why joins duplicate rows, why a loop is slow on a million detections, why your script works on your laptop but not on a collaborator’s.
-
-These quests use the same rhythm as the functional programming tracks (~10 minutes, annotated R where it helps, reef / fishery / acoustic / biologging examples). The goal is **competence**: read code, write code, debug code — whether you type it yourself or use a tool later.
+Types, memory, debugging, reproducibility. Light R.
 
 ```{r setup}
 #| include: false
@@ -35,172 +32,116 @@ acoustic <- read.csv(data_path("acoustic_detections.csv"))
 ```
 
 ## Q1 · Programs, data, and R {#q01}
-
-A **program** is instructions that transform **input data** into **output** (tables, plots, model fits). R is both a calculator and a language for chaining those transformations — your transect CSV is input; a species richness table is output.
-
-Thinking in input → process → output matches how you design a field study: samples in, inference out.
-
 ```{r q01}
-input_rows <- nrow(reef)                              # how many rows enter the pipeline
-output_sites <- length(unique(reef$site))               # how many sites after summarising
-c(input_rows = input_rows, output_sites = output_sites) # named result vector
+input_rows <- nrow(reef)
+output_sites <- length(unique(reef$site)) # how many sites after summarising
+c(input_rows = input_rows, output_sites = output_sites)
 ```
 
 ## Q2 · Assignment and names {#q02}
-
-**`<-`** stores a value under a **name** (object). Names should describe meaning (`mean_depth`), not typing order (`x1`). The environment is a lookup table from names to values — the same idea as labelled columns, but for interim results.
-
 ```{r q02}
-mean_depth <- mean(reef$depth_m)                      # store summary under a clear name
-mean_depth                                                # retrieve by name
-rm(mean_depth)                                            # remove binding (free name)
+mean_depth <- mean(reef$depth_m) # store summary under a clear
+mean_depth
+rm(mean_depth) # remove binding
 ```
 
 ## Q3 · Types and coercion {#q03}
-
-Every value has a **type** (`numeric`, `character`, `logical`, …). **Coercion** converts types, sometimes silently — `"12"` + 1 fails; `as.numeric("12")` succeeds. Ecology CSVs often import counts as character if a stray `"NA"` or `"."` appears.
-
 ```{r q03}
-typeof(reef$count)                                      # should be double/integer
-char_counts <- as.character(reef$count[1:3])              # simulate import as text
-as.numeric(char_counts)                                   # explicit conversion back
+typeof(reef$count) # should be double/integer
+char_counts <- as.character(reef$count[1:3]) # simulate import as text
+as.numeric(char_counts) # explicit conversion back
 ```
 
 ## Q4 · Memory: copy vs modify {#q04}
-
-R often **shares** memory until you **modify** a copy (copy-on-write). Large acoustic tables feel slow when you copy them repeatedly in a loop. Prefer one pipeline that adds columns once, or tools (**data.table** `:=`) that modify in place when you mean to.
-
 ```{r q04}
-a <- reef$count                                         # share column vector
-b <- a                                                    # b points at same data until changed
-b[1] <- 999L                                              # replace triggers copy for b
-a[1]                                                      # original column unchanged in reef
+a <- reef$count
+b <- a
+b[1] <- 999L # replace triggers copy for b
+a[1] # original column unchanged in reef
 ```
 
 ## Q5 · Files and paths {#q05}
-
-Scripts live in **directories**; data live in **files** with **paths**. **`getwd()`** is where R thinks you are; **`file.path()`** builds paths portably. Reproducible projects use relative paths from a project root — not `setwd("~/Desktop")` on one machine only.
-
 ```{r q05}
-getwd()                                                 # current working directory
+getwd() # current working directory
 file.path("ai-tutorials", "data", "reef_transects.csv") # portable path string
-file.exists(data_path("reef_transects.csv"))              # TRUE when CSV is found
+file.exists(data_path("reef_transects.csv")) # TRUE when CSV is found
 ```
 
 ## Q6 · Functions as contracts {#q06}
-
-A **function** is a contract: **inputs** (arguments), **output** (return value), and **side effects** (files written, messages). Good contracts are small and testable — one function for “CPUE per trip”, not one script that does everything.
-
 ```{r q06}
-cpue <- function(catch, effort) {                     # catch / effort with guard
-  if (effort <= 0) return(NA_real_)                     # invalid effort → missing
+cpue <- function(catch, effort) { # catch / effort with guard
+  if (effort <= 0) return(NA_real_) # invalid effort → missing
   catch / effort
 }
-cpue(catch = 40, effort = 8)                              # example call
+cpue(catch = 40, effort = 8) # example call
 ```
 
 ## Q7 · Boolean logic {#q07}
-
-**Logical** values (`TRUE` / `FALSE`) drive **`if`**, **`filter()`**, and indexing. **`&`** is element-wise AND; **`&&`** is scalar AND (first pair only). **`any()`** / **`all()`** summarise vectors — “any depth negative?”, “all tags unique?”.
-
 ```{r q07}
-bad_depth <- reef$depth_m < 0                           # logical vector
-any(bad_depth, na.rm = TRUE)                              # any impossible depths?
-all(!duplicated(acoustic$animal_id) | TRUE)               # tags can repeat rows; logic demo
-table(acoustic$detections > 3)                              # TRUE/FALSE counts
+bad_depth <- reef$depth_m < 0
+any(bad_depth, na.rm = TRUE) # any impossible depths?
+all(!duplicated(acoustic$animal_id) | TRUE) # tags can repeat rows; logic
+table(acoustic$detections > 3) # TRUE/FALSE counts
 ```
 
 ## Q8 · Algorithms: find and sort {#q08}
-
-An **algorithm** is a step-by-step recipe. **`which.max()`** finds an index; **`order()`** returns sort indices. For small ecology tables, “fast enough” beats clever — for million-row detections, algorithm choice matters (Quest 9).
-
 ```{r q08}
-i_max <- which.max(fishery$tonnes)                      # row with largest landing
-fishery[i_max, c("year", "species", "tonnes")]            # inspect that record
-order(fishery$tonnes, decreasing = TRUE)[1:3]             # top three indices
+i_max <- which.max(fishery$tonnes)
+fishery[i_max, c("year", "species", "tonnes")] # inspect that record
+order(fishery$tonnes, decreasing = TRUE)[1:3] # top three indices
 ```
 
 ## Q9 · Big-O intuition for n rows {#q09}
-
-**Big-O** describes how work grows with **n** (rows). Doubling rows roughly doubles time for a single **`O(n)`** pass; nested loops over sites × species can be **`O(n²)`** on wide problems. Vectorised R is often **`O(n)`** in C — loops in pure R are fine for teaching, costly at IMOS scale.
-
 ```{r q09}
-n <- nrow(acoustic)                                     # n for this file
+n <- nrow(acoustic) # n for this file
 c(rows = n, double_pass = 2 * n, nested_demo = length(unique(acoustic$animal_id)) * 10)
 ```
 
 ## Q10 · Vectors, lists, tables {#q10}
-
-**Vector** = one type, one dimension. **List** = mixed objects. **Data frame** = table of columns (vectors of equal length). Ecology exports are tables; nested receiver lists are lists — know which you hold.
-
 ```{r q10}
-str(reef$count)                                         # atomic vector
-str(split(reef$count, reef$site))                       # list of vectors
-str(reef)                                                 # data.frame of columns
+str(reef$count)
+str(split(reef$count, reef$site)) # list of vectors
+str(reef) # data.frame of columns
 ```
 
 ## Q11 · Encoding and factors {#q11}
-
-**Factors** store **levels** (categories) efficiently; **character** stores full strings. Stats models often want factors; joins want consistent spelling. **`forcats`** helps in tidy workflows; base **`as.factor()`** is enough to understand the idea.
-
 ```{r q11}
-f <- as.factor(reef$site)                               # site as categorical
-levels(f)                                                 # allowed labels
-as.integer(f)[1:5]                                        # internal level codes
+f <- as.factor(reef$site) # site as categorical
+levels(f) # allowed labels
+as.integer(f)[1:5] # internal level codes
 ```
 
 ## Q12 · Reproducibility & seeds {#q12}
-
-**Reproducibility** means someone else (or future you) gets the same result from the same code and data. **`set.seed()`** fixes pseudo-random draws for subsampling and simulation in papers and supplements.
-
 ```{r q12}
-set.seed(42)                                            # lock RNG
-sample(reef$transect_id, 3)                               # three random transects
-set.seed(42)                                              # same seed again
-sample(reef$transect_id, 3)                               # identical draw
+set.seed(42) # lock RNG
+sample(reef$transect_id, 3) # three random transects
+set.seed(42)
+sample(reef$transect_id, 3) # identical draw
 ```
 
 ## Q13 · Debugging strategies {#q13}
-
-**Debugging** is hypothesis testing: predict, inspect, narrow. **`str()`**, **`head()`**, **`nrow()`**, **`summary()`**, and **`browser()`** (when needed) beat randomly changing code. Halve the pipeline until the bug appears — same as ruling out gear failure on a boat.
-
 ```{r q13}
-str(acoustic)                                           # structure first
-summary(acoustic$detections)                              # range and NA check
-stopifnot(nrow(acoustic) > 0)                             # assert expectation early
+str(acoustic)
+summary(acoustic$detections) # range and NA check
+stopifnot(nrow(acoustic) > 0) # assert expectation early
 ```
 
 ## Q14 · Version control mindset {#q14}
-
-**Version control** (Git) tracks **changes** to scripts over time — who changed what, when, and why. You do not need every Git command on day one; you need the habit: **small commits**, meaningful messages, one analysis per branch. Field notebooks have dates; code should too.
-
-*(This quest is conceptual — no Git commands required in R.)*
-
-## Q15 · DRY and small functions {#q15}
-
-**DRY** (Don’t Repeat Yourself): one definition, many uses. Copy-pasted **`mutate()`** blocks drift apart; a function or shared script chunk stays consistent across reef and fishery reports.
-
 ```{r q15}
-z_score <- function(x) (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)  # reusable
+z_score <- function(x) (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE) # reusable
 z_score(reef$count)[1:5]
 z_score(fishery$tonnes)[1:5]
 ```
 
 ## Q16 · Validate inputs early {#q16}
-
-**Fail fast**: check column names, types, and ranges at the top of a script. Clear **`stop()`** messages save hours when a CSV column was renamed (`Detections` vs `detections`).
-
 ```{r q16}
-need <- c("animal_id", "detections")                   # required columns
+need <- c("animal_id", "detections") # required columns
 if (!all(need %in% names(acoustic))) stop("Missing columns: ", paste(setdiff(need, names(acoustic)), collapse = ", "))
 if (any(acoustic$detections < 0, na.rm = TRUE)) stop("Negative detections found")
 message("Input checks passed")
 ```
 
 ## Q17 · Composition and pipes {#q17}
-
-**Composition** chains small steps: output of step 1 feeds step 2. The **pipe** **`|>`** passes the left object as the first argument to the right — readable top-to-bottom narratives for dplyr pipelines.
-
 ```{r q17}
 suppressPackageStartupMessages(library(dplyr))
 reef |>
@@ -210,35 +151,19 @@ reef |>
 ```
 
 ## Q18 · Reading error messages {#q18}
-
-Errors read **bottom-up**: what failed, then the call stack. **`object not found`** → typo in a name. **`non-numeric argument`** → wrong type. Save the full message when asking for help — it is data.
-
 ```{r q18}
 # Example: intentional typo (run to see error in console when knitting locally)
-# mean(reef$counts)  # counts vs count
+# mean(reef$counts) # counts vs count
 tryCatch(mean(reef$counts), error = function(e) conditionMessage(e))
 ```
 
 ## Q19 · Documentation & help() {#q19}
-
-**`?mean`**, **`help(mean)`**, and package vignettes are authoritative. **`args(mean)`** shows the argument list quickly. Writing a one-line comment per custom function is documentation your future self will thank you for.
-
 ```{r q19}
-args(mean)                                              # formal arguments
-# help(mean)                                            # run in RStudio for full help page
+args(mean) # formal arguments
+# help(mean) # run in RStudio for full help page
 ```
 
 ## Q20 · CS capstone plan {#q20}
-
-Before writing code for a new dataset, sketch on paper:
-
-1. **Inputs** — files, columns, units  
-2. **Outputs** — tables, figures, model objects  
-3. **Checks** — row counts, NA rules, keys  
-4. **Steps** — import → clean → summarise → plot  
-
-That plan is what good coursework, theses, and later **tool-assisted** coding all depend on — the tool fills syntax; you own the design.
-
 ```{r q20}
 plan <- list(
   input = "acoustic_detections.csv",

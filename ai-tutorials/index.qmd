@@ -1,6 +1,6 @@
 ---
 title: "AI R Tutorials"
-subtitle: "Written with AI — to teach you how to code without leaning on it."
+subtitle: "Written with AI — learn to code without leaning on it."
 sidebar: ai-curriculum
 listing:
   contents:
@@ -14,11 +14,9 @@ format:
     page-layout: article
 ---
 
-<p class="ai-tagline">To understand how to code <em>with</em> AI, you need to understand how to code <em>first</em>. These tracks are for learning R and computer science properly — short quests, real ecology tables, line-by-line comments.</p>
+<p class="ai-tagline">Code first; tools second. ~10 min quests, real ecology CSVs, tight comments on every line.</p>
 
-## Choose a track
-
-Use the **Coding curriculum** sidebar to jump to any quest, or open a tab below.
+Sidebar = full quest list. Or pick a tab:
 
 ## Functional programming
 
@@ -26,49 +24,24 @@ Use the **Coding curriculum** sidebar to jump to any quest, or open a tab below.
 
 ### Beginner · Base R
 
-**20 quests · ~10 min each**
-
-Vectors, `if`/`else`, `for` loops, the **`apply`** family, **`split` + `lapply`**, and a base R capstone. Start here if dplyr and purrr still feel like magic.
-
-[Open Beginner track →](level-1-base-r/index.qmd)
+Vectors, `if`/`else`, loops, `apply`, `lapply`. [Open →](level-1-base-r/index.qmd)
 
 ### Intermediate · dplyr
 
-**20 quests**
-
-`mutate`, `filter`, `group_by`, `lead`/`lag`, joins, pivots — the verbs you use on reef, fishery, and telemetry tables every week.
-
-[Open dplyr track →](level-2-dplyr/index.qmd)
+`mutate`, `filter`, `group_by`, `lead`/`lag`, joins. [Open →](level-2-dplyr/index.qmd)
 
 ### Intermediate · purrr & furrr
 
-**20 quests**
-
-Lists, **`map`**, **`map2`**, **`safely`**, **`walk`**, and optional parallel **`furrr`**. Finish Base R and most of dplyr first.
-
-[Open purrr track →](level-3-purrr/index.qmd)
+`map`, `safely`, `walk`, optional `furrr`. [Open →](level-3-purrr/index.qmd)
 
 ### Advanced · data.table
 
-**20 quests**
-
-`[i, j, by]`, `.SD`, joins, **`shift`**, **`fcase`** — when tables get large and you want one expressive syntax.
-
-[Open data.table track →](level-4-data-table/index.qmd)
+`[i, j, by]`, `.SD`, `shift`, `fcase`. [Open →](level-4-data-table/index.qmd)
 
 :::
 
 ## Computer science crash course
 
-**20 quests · same format · mostly concepts + light R**
+Types, memory, debugging, reproducibility — light R. [Open →](cs-crash-course/index.qmd)
 
-Types, memory, algorithms, debugging, reproducibility, and how to plan an analysis before you write code. Pairs well with any functional programming tab.
-
-[Open CS crash course →](cs-crash-course/index.qmd)
-
-::: {.quest-hub}
-<p class="quest-hub__title">100 quests across five modules</p>
-<p class="quest-hub__hint"><strong>Human R Tutorials</strong> on this site are full field workflows (telemetry, dive logs). <strong>AI R Tutorials</strong> are the structured curriculum — practice until the pattern is yours, then use any tool you like for speed.</p>
-:::
-
-Learning works best in short segments with feedback ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). Treat each quest like a lab exercise: predict the output, run the chunk, revise your mental model ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).
+**Human R Tutorials** = full field workflows. **AI R Tutorials** = skill drills.

@@ -1,6 +1,6 @@
 ---
 title: "Functional programming · Intermediate (purrr & furrr)"
-description: "Intermediate track — twenty quests on map, safely, walk, and parallel furrr."
+description: "Intermediate · purrr"
 date: 2026-07-21
 sidebar: ai-curriculum
 format:
@@ -16,14 +16,7 @@ execute:
 ---
 
 ## Functional programming · Intermediate (purrr & furrr)
-
-Functional programming maps **functions over structures** instead of hand-writing loops. **purrr** makes that explicit: every map returns a predictable object type — essential when your data are split by site, tag, year, or burst.
-
-Lists show up constantly in ecology — receivers nested in arrays, burst segments, model outputs per transect. Short quests with immediate output mirror how working memory stays manageable during learning ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). You will learn when **`map2()`** fits and when **`pmap()`** is the right tool.
-
-Parallel **`furrr`** is optional horsepower after correctness. Get the serial map right, then scale — the same habit as validating one tag before running the whole array.
-
-On dense quests (**`map`**, **`map2`**, **`pmap`**, **`safely`**, **`map_dfr`**), you will practice the same function on **two or three ecological tables**.
+Lists and `map` for tags, bursts, years. Do Base R + dplyr first.
 
 ```{r setup}
 #| include: false
@@ -47,42 +40,28 @@ suppressPackageStartupMessages({
 ```
 
 ## Q1 · Lists as ecology objects {#q01}
-
-An R **list** holds heterogeneous objects — data frames, vectors, metadata — in one named container. Telemetry projects often store receiver info and detection tables as list elements before flattening.
-
-Lists are why AI code suddenly returns `[[1]]` errors: you skipped a level. Building lists manually teaches inspection with `str()`.
-
-Nest reef data frames by site as list elements.
-
 ```{r q01}
-by_site <- split(reef, reef$site)                   # base split to named list
-class(by_site)                                          # should be 'list'
-names(by_site)                                          # site names as list names
-lapply(by_site, nrow)                                     # rows per site (map() in Q2)
+by_site <- split(reef, reef$site) # base split to named list
+class(by_site) # should be 'list'
+names(by_site) # site names as list names
+lapply(by_site, nrow) # rows per site
 ```
 
 ## Q2 · map() intuition {#q02}
-
-**`map()`** applies a function to each list element and returns a list of results — always, unlike the `sapply()` simplification surprises in base R.
-
-Think ‘for each element, do FUN’ — same loop pattern, fewer index typos when AI drafts batch jobs.
-
-Extract unique species names per site using map.
-
 ```{r q02}
-species_lists <- map(by_site, ~ unique(.x$species))  # .x is each site df
-species_lists                                           # list of character vectors
-lengths(species_lists)                                  # how many species per site
+species_lists <- map(by_site, ~ unique(.x$species)) # .x is each site df
+species_lists # list of character vectors
+lengths(species_lists) # how many species per site
 ```
 
-**Example 2 — fishery ports:** **`split`** landings by **`port`**, **`map`** **`nrow`**.
+**Ex 2.**
 
 ```{r q02-fishery}
 by_port <- split(fishery, fishery$port)
 map_int(by_port, nrow)
 ```
 
-**Example 3 — acoustic zones:** **`map_chr`** the dominant **`receiver`** per zone (first row demo).
+**Ex 2.**
 
 ```{r q02-acoustic}
 by_zone <- split(acoustic, acoustic$reef_zone)
@@ -90,40 +69,26 @@ map_chr(by_zone, ~ .x$receiver[1])
 ```
 
 ## Q3 · map_dbl(), map_chr() {#q03}
-
-Typed maps **`map_dbl()`**, **`map_int()`**, **`map_chr()`** assert return types — the purrr analogue of `vapply()` from Level 1.
-
-Use typed maps when building numeric summaries from lists before ggplot.
-
-Mean fish count per site as a named numeric vector.
-
 ```{r q03}
-mean_counts <- map_dbl(by_site, ~ mean(.x$count))   # numeric vector out
-mean_counts                                             # named by site
-sum(mean_counts)                                        # sanity check total
+mean_counts <- map_dbl(by_site, ~ mean(.x$count)) # numeric vector out
+mean_counts # named by site
+sum(mean_counts) # sanity check total
 ```
 
 ## Q4 · map2() paired columns {#q04}
-
-**`map2()`** walks two parallel vectors element-wise — year paired with species, depth paired with pitch.
-
-If lengths differ, purrr recycles with rules — verify `length(x) == length(y)` before trusting AI-generated map2.
-
-Pair fishery year and species into composite labels.
-
 ```{r q04}
 labels <- map2_chr(fishery$year, fishery$species, ~ paste(.x, .y, sep = "-"))
-head(labels)                                            # first few composite ids
-length(labels) == nrow(fishery)                         # lengths must match
+head(labels)
+length(labels) == nrow(fishery) # lengths must match
 ```
 
-**Example 2 — reef:** **`map2_dbl`** on **`count`** and **`depth_m`** for count-to-depth ratio.
+**Ex 2.**
 
 ```{r q04-reef}
 map2_dbl(reef$count, reef$depth_m, function(c, d) if (d > 0) c / d else NA_real_)[1:5]
 ```
 
-**Example 3 — biologging:** **`map2_dbl`** on consecutive depths within burst 1 (step changes).
+**Ex 2.**
 
 ```{r q04-biolog}
 b1 <- biolog[biolog$burst_id == 1, ]
@@ -131,22 +96,15 @@ map2_dbl(b1$depth_m[-length(b1$depth_m)], b1$depth_m[-1], ~ .y - .x)[1:5]
 ```
 
 ## Q5 · pmap() row-wise {#q05}
-
-**`pmap()`** maps over rows of a data frame — row-wise logic without an explicit index `i`.
-
-Prefer vectorised `mutate()` when possible; pmap shines when calling external functions per row.
-
-Build text summaries for the first five acoustic rows.
-
 ```{r q05}
-ac5 <- acoustic |> dplyr::slice_head(n = 5)          # tiny slice
+ac5 <- acoustic |> dplyr::slice_head(n = 5) # tiny slice
 summaries <- pmap_chr(ac5, function(animal_id, receiver, detections, reef_zone) {
   paste0(animal_id, " @ ", receiver, ": ", detections, " (", reef_zone, ")")
 })
-summaries                                               # one string per row
+summaries # one string per row
 ```
 
-**Example 2 — reef:** **`pmap_chr`** on first three transect rows ( **`transect_id`**, **`species`**, **`count`** ).
+**Ex 2.**
 
 ```{r q05-reef}
 r3 <- reef |> slice_head(n = 3)
@@ -155,7 +113,7 @@ pmap_chr(r3, function(transect_id, site, species, count, depth_m) {
 })
 ```
 
-**Example 3 — fishery:** **`pmap`** on **`year`**, **`species`**, **`tonnes`** for report lines.
+**Ex 2.**
 
 ```{r q05-fishery}
 f3 <- fishery |> slice_head(n = 3)
@@ -163,23 +121,16 @@ pmap_chr(f3, function(year, species, tonnes, port) paste0(year, " ", species, " 
 ```
 
 ## Q6 · map_dfr() simulations {#q06}
-
-**`map_dfr()`** row-binds data frame results — ideal for simulation replicates or per-group outputs.
-
-Each iteration must return compatible columns; bind fails loudly otherwise — good QC for AI loops.
-
-Simulate three Poisson draws per reef species name.
-
 ```{r q06}
-set.seed(7)                                       # reproducible draws
-sp <- unique(reef$species)                              # species labels
-sim <- map_dfr(sp, function(s) {                        # one df per species
-  tibble(species = s, draw = rpois(3, lambda = 5))      # three random counts
+set.seed(7) # reproducible draws
+sp <- unique(reef$species) # species labels
+sim <- map_dfr(sp, function(s) {
+  tibble(species = s, draw = rpois(3, lambda = 5)) # three random counts
 })
-sim                                                     # stacked draws
+sim # stacked draws
 ```
 
-**Example 2 — fishery:** three **`runif`** landings per **`port`**.
+**Ex 2.**
 
 ```{r q06-fishery}
 ports <- unique(fishery$port)
@@ -188,7 +139,7 @@ map_dfr(ports, function(p) {
 })
 ```
 
-**Example 3 — acoustic:** simulate **`rpois`** detection counts per **`receiver`**.
+**Ex 2.**
 
 ```{r q06-acoustic}
 rx <- unique(acoustic$receiver)[1:4]
@@ -196,28 +147,21 @@ map_dfr(rx, function(r) tibble(receiver = r, sim_det = rpois(3, lambda = 4)))
 ```
 
 ## Q7 · safely() errors as data {#q07}
-
-**`safely()`** wraps a function to return `result` or `error` instead of stopping — essential on messy field spreadsheets.
-
-Turning errors into data lets you filter failed rows and fix upstream instead of silent NA cascades.
-
-Safely parse numeric strings including a bad value.
-
 ```{r q07}
-raw <- c("12", "4.5", "NA", "oops")               # mixed strings
-parsed <- map(raw, safely(as.numeric))                  # list of result/error
-ok <- map_lgl(parsed, ~ is.null(.x$error))              # which succeeded
-map_dbl(parsed[ok], "result")                           # extract numeric successes
+raw <- c("12", "4.5", "NA", "oops") # mixed strings
+parsed <- map(raw, safely(as.numeric)) # list of result/error
+ok <- map_lgl(parsed, ~ is.null(.x$error)) # which succeeded
+map_dbl(parsed[ok], "result") # extract numeric successes
 ```
 
-**Example 2 — reef counts as character** (typo **`"12a"`** in a fake vector).
+**Ex 2.**
 
 ```{r q07-reef}
 raw_counts <- c("8", "12", "12a", "3")
 map(raw_counts, safely(as.numeric))
 ```
 
-**Example 3 — fishery tonnes strings** with empty field.
+**Ex 2.**
 
 ```{r q07-fishery}
 raw_t <- c("45.2", "", "88")
@@ -225,204 +169,113 @@ map(raw_t, safely(as.numeric))
 ```
 
 ## Q8 · walk() side effects {#q08}
-
-**`walk()`** maps for side effects such as messages or file writes and discards return values.
-
-Use walk to log QC per site without collecting useless NULLs in a list.
-
-Print simple site headers for reef splits.
-
 ```{r q08}
-walk(names(by_site), function(nm) {               # iterate site names
-  message("Site: ", nm, " — rows: ", nrow(by_site[[nm]]))  # logging side effect
+walk(names(by_site), function(nm) { # iterate site names
+  message("Site: ", nm, " — rows: ", nrow(by_site[[nm]]))
 })
-invisible(NULL)                                         # walk returns input invisibly
+invisible(NULL) # walk returns input invisibly
 ```
 
 ## Q9 · reduce() combine lists {#q09}
-
-**`reduce()`** folds a list with a binary function — combine vectors or merge tables stepwise.
-
-Light introduction: sum detection vectors conceptually before bind-heavy pipelines.
-
-Sum all detection values via reduce on split vectors.
-
 ```{r q09}
-by_an <- split(acoustic$detections, acoustic$animal_id)  # list of nums
-per_an <- map_dbl(by_an, sum)                           # one total per animal tag
-total_det <- reduce(per_an, `+`)                        # fold scalar sums together
-total_det                                               # grand total detections
+by_an <- split(acoustic$detections, acoustic$animal_id) # list of nums
+per_an <- map_dbl(by_an, sum) # one total per animal tag
+total_det <- reduce(per_an, `+`) # fold scalar sums together
+total_det # grand total detections
 ```
 
 ## Q10 · list-columns intro {#q10}
-
-Tibbles can store **list-columns** — each cell holds a vector or mini data frame before `unnest()`.
-
-AI-generated nested JSON often becomes list-columns; recognise them in `glimpse()` output.
-
-Nest biolog seconds and depths per burst_id.
-
 ```{r q10}
-nested_bio <- biolog |>                           # biologging table
-  group_by(burst_id) |>                                 # one row per burst soon
+nested_bio <- biolog |> # biologging table
+  group_by(burst_id) |>
   summarise(times = list(seconds), depths = list(depth_m), .groups = "drop")
-nested_bio                                              # list-columns visible
-nested_bio$depths[[1]]                                  # first burst depth vector
+nested_bio # list-columns visible
+nested_bio$depths[[1]]
 ```
 
 ## Q11 · map on telemetry splits {#q11}
-
-Split acoustic data by **`animal_id`**, map summaries — the animal-centric pattern in movement ecology.
-
-Check empty animals: map should still return sensible values or explicit NA.
-
-Maximum detections per animal as a named vector.
-
 ```{r q11}
-by_animal <- group_split(acoustic, animal_id)   # list of tibbles
-max_det <- map_dbl(by_animal, ~ max(.x$detections))    # peak ping count
-names(max_det) <- map_chr(by_animal, ~ unique(.x$animal_id))  # name elements
-max_det                                                 # per-tag max
+by_animal <- group_split(acoustic, animal_id) # list of tibbles
+max_det <- map_dbl(by_animal, ~ max(.x$detections)) # peak ping count
+names(max_det) <- map_chr(by_animal, ~ unique(.x$animal_id)) # name elements
+max_det # per-tag max
 ```
 
 ## Q12 · map on fishery years {#q12}
-
-Split **`fishery`** by year and map total tonnes — functional annual report tables.
-
-Named results from map reduce join friction when plotting.
-
-Total tonnes landed each calendar year.
-
 ```{r q12}
-by_year <- group_split(fishery, year)            # one df per year
-year_tot <- map_dbl(by_year, ~ sum(.x$tonnes))           # annual totals
-setNames(year_tot, map_int(by_year, ~ unique(.x$year)))  # names = years
-year_tot                                                # numeric summary
+by_year <- group_split(fishery, year)
+year_tot <- map_dbl(by_year, ~ sum(.x$tonnes)) # annual totals
+setNames(year_tot, map_int(by_year, ~ unique(.x$year))) # names = years
+year_tot # numeric summary
 ```
 
 ## Q13 · map2 weights & counts {#q13}
-
-**`map2()`** on paired vectors supports weighted calculations — tonnes times price, detections times effort.
-
-Always verify equal lengths on real tagging projects before map2.
-
-Element-wise product of depth and unit weights (demo).
-
 ```{r q13}
-x <- biolog$depth_m[1:10]                         # depths subsample
-w <- rep(1, 10)                                         # equal weights demo
-weighted <- map2_dbl(x, w, ~ .x * .y)                    # element products
-sum(weighted) / sum(w)                                  # weighted mean depth
+x <- biolog$depth_m[1:10] # depths subsample
+w <- rep(1, 10) # equal weights demo
+weighted <- map2_dbl(x, w, ~ .x * .y) # element products
+sum(weighted) / sum(w) # weighted mean depth
 ```
 
 ## Q14 · possibly() softer failures {#q14}
-
-**`possibly()`** replaces errors with a default value — softer than `safely()` when you want NA back.
-
-Do not hide real bugs in production; use for known messy sensor drops only.
-
-Possibly divide detections by multipliers with a zero divisor.
-
 ```{r q14}
-mult <- c(1, 2, 0, 4)                              # includes zero divisor
+mult <- c(1, 2, 0, 4) # includes zero divisor
 safe_div <- possibly(function(a, b) a / b, otherwise = NA_real_)
-map2_dbl(acoustic$detections[1:4], mult, safe_div)    # NA where divide fails
+map2_dbl(acoustic$detections[1:4], mult, safe_div) # NA where divide fails
 ```
 
 ## Q15 · quietly() hide messages {#q15}
-
-**`quietly()`** captures messages while returning results — useful when mapped functions are chatty.
-
-Keeps R Markdown clean while preserving access to logs via the result object.
-
-Quietly compute means on site count vectors.
-
 ```{r q15}
-chatty_mean <- function(x) {                      # function with message
+chatty_mean <- function(x) { # function with message
   message("computing mean on length ", length(x))
   mean(x)
 }
-q <- quietly(chatty_mean)                               # wrap to capture noise
-res <- map(by_site, ~ q(.x$count))                      # list of quiet results
-map_dbl(res, "result")                                  # extract means only
+q <- quietly(chatty_mean) # wrap to capture noise
+res <- map(by_site, ~ q(.x$count)) # list of quiet results
+map_dbl(res, "result")
 ```
 
 ## Q16 · furrr parallel map {#q16}
-
-**furrr** **`future_map()`** mirrors **`map()`** on parallel workers — worth it on heavy simulations, not tiny reef tables.
-
-Install furrr/future if missing; serial map remains the correctness baseline.
-
-Optional parallel mean counts per site when furrr is installed.
-
 ```{r q16}
-has_furrr <- requireNamespace("furrr", quietly = TRUE)  # check package
+has_furrr <- requireNamespace("furrr", quietly = TRUE) # check package
 if (has_furrr) {
   suppressPackageStartupMessages({ library(furrr); library(future) })
-  plan(multisession, workers = 2)                       # local worker pool
-  future_map_dbl(by_site, ~ mean(.x$count))            # parallel map
+  plan(multisession, workers = 2) # local worker pool
+  future_map_dbl(by_site, ~ mean(.x$count)) # parallel map
 } else {
   message("Install furrr for parallel demo; using map_dbl")
-  map_dbl(by_site, ~ mean(.x$count))                   # serial fallback
+  map_dbl(by_site, ~ mean(.x$count)) # serial fallback
 }
 ```
 
 ## Q17 · future plans & workers {#q17}
-
-The **future** **`plan()`** selects sequential vs multisession execution — set once before furrr maps.
-
-More workers add overhead; small tables rarely benefit — reason about cost like any field campaign.
-
-Time serial map over site list as baseline.
-
 ```{r q17}
-time_serial <- system.time({                       # time serial map
+time_serial <- system.time({ # time serial map
   map_dbl(by_site, ~ mean(.x$count))
 })
-time_serial                                             # print timing object
+time_serial # print timing object
 ```
 
 ## Q18 · map deep on biologging {#q18}
-
-Map over burst splits to build hierarchical summaries — ‘deep’ mapping across nested structure.
-
-Sketch the list tree before accepting AI nested map code.
-
-Per-burst mean depth and record count bound into one table.
-
 ```{r q18}
-burst_stats <- biolog |>                         # biologging data
-  group_split(burst_id) |>                              # list of burst tibbles
+burst_stats <- biolog |>
+  group_split(burst_id) |> # list of burst tibbles
   map(~ summarise(.x, mean_depth = mean(depth_m), n_sec = n()))
-burst_tbl <- map_dfr(burst_stats, identity)             # row-bind summaries
-head(burst_tbl)                                         # one row per burst
+burst_tbl <- map_dfr(burst_stats, identity) # row-bind summaries
+head(burst_tbl)
 ```
 
 ## Q19 · compose functions {#q19}
-
-**`compose()`** builds function pipelines — conceptual kin to `|>` but for function values passed to map.
-
-Useful for reusable QC plus transform blocks in functional workflows.
-
-Compose rounding after min-max scaling of fishery tonnes.
-
 ```{r q19}
-scale01 <- function(x) (x - min(x)) / (max(x) - min(x))  # min-max scale
-round2 <- function(x) round(x, 2)                       # two decimals
-fmt <- compose(round2, scale01)                         # combined function
-fmt(fishery$tonnes)                                     # formatted vector
+scale01 <- function(x) (x - min(x)) / (max(x) - min(x)) # min-max scale
+round2 <- function(x) round(x, 2) # two decimals
+fmt <- compose(round2, scale01)
+fmt(fishery$tonnes)
 ```
 
 ## Q20 · purrr capstone {#q20}
-
-Integrate split, map, and `map_dfr()` on acoustic data — the workflow to verify before batch-processing receiver exports with AI.
-
-Inspect list depth at each step; capstones fail when an extra `[[1]]` sneaks in.
-
-Zone summaries bound and plotted.
-
 ```{r q20}
-zone_list <- group_split(acoustic, reef_zone)    # list by habitat zone
+zone_list <- group_split(acoustic, reef_zone) # list by habitat zone
 zone_summary <- map_dfr(zone_list, function(df) {
   tibble(
     reef_zone = unique(df$reef_zone),
@@ -431,7 +284,7 @@ zone_summary <- map_dfr(zone_list, function(df) {
   )
 })
 ggplot(zone_summary, aes(x = reef_zone, y = total_det, fill = reef_zone)) +
-  geom_col(show.legend = FALSE) +                       # bar chart by zone
+  geom_col(show.legend = FALSE) + # bar chart by zone
   labs(title = "Detections by reef zone", y = "Sum of detections")
 ```
 

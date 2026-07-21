@@ -1,6 +1,6 @@
 ---
 title: "Functional programming · Advanced (data.table)"
-description: "Advanced track — twenty quests on [i,j,by], joins, shift, and fast aggregation."
+description: "Advanced · data.table"
 date: 2026-07-21
 sidebar: ai-curriculum
 format:
@@ -16,14 +16,7 @@ execute:
 ---
 
 ## Functional programming · Advanced (data.table)
-
-**data.table** treats columns as memory you reference, not copy — syntax **`[i, j, by]`** expresses filter, compute, and group in one line. Experienced analysts often pick one dialect per workflow (**dplyr** *or* **data.table**) for readability.
-
-Keys, binary search, and **`:=`** assignment by reference are performance tools; the deeper win is explicit grouping via **`by`** and **`.SD`**. Predict row counts per group before running code — the same hypothesis-check habit from scientific reasoning ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).
-
-When CSVs grow large, **`fread()`** replaces **`read.csv()`**; we note it in a quest but keep setup on **`read.csv()`** so renders stay portable.
-
-Core syntax quests repeat on **reef, fishery, acoustic, and biologging** tables so you read the expression, not one memorised column name.
+`[i, j, by]` when data get large.
 
 ```{r setup}
 #| include: false
@@ -48,146 +41,92 @@ DTbio <- as.data.table(biolog)
 ```
 
 ## Q1 · as.data.table() mindset {#q01}
-
-**`as.data.table()`** converts data frames without dropping columns; printing shows head and tail of large tables.
-
-data.table is still tabular data — but `[` overloads filtering, grouping, and assignment.
-
-Convert reef data and inspect structure.
-
 ```{r q01}
-print(DTreef)                                     # data.table print method
-class(DTreef)                                           # data.table and data.frame
-dim(DTreef)                                             # rows and columns
+print(DTreef) # data.table print method
+class(DTreef) # data.table and data.frame
+dim(DTreef) # rows and columns
 ```
 
 ## Q2 · [i, j, by] core {#q02}
-
-The template **`DT[i, j, by]`** uses **i** to filter rows, **j** to compute, **by** to group. The `.()` helper builds j expressions with names.
-
-Read expressions aloud before running — catches AI mistakes like filtering on wrong column.
-
-Mean count by species for North site transects only.
-
 ```{r q02}
 DTreef[site == "North", .(mean_count = mean(count)), by = species]
 ```
 
-**Example 2 — fishery:** mean **`tonnes`** by **`species`** for **`port == "Cairns"`**.
+**Ex 2.**
 
 ```{r q02-fishery}
 DTfish[port == "Cairns", .(mean_t = mean(tonnes)), by = species]
 ```
 
-**Example 3 — acoustic:** sum **`detections`** by **`receiver`** in **`reef_zone == "Lagoon"`**.
+**Ex 2.**
 
 ```{r q02-acoustic}
 DTac[reef_zone == "Lagoon", .(total = sum(detections)), by = receiver]
 ```
 
-**Example 4 — biologging:** max **`depth_m`** by **`burst_id`**.
+**Ex 2.**
 
 ```{r q02-biolog}
 DTbio[, .(max_depth = max(depth_m)), by = burst_id][1:5]
 ```
 
 ## Q3 · .N and .I {#q03}
-
-**.N** counts rows in the current group; **.I** holds indices for within-group positions.
-
-These symbols replace verbose split-apply counting in base R.
-
-Count acoustic rows per animal and pull each tag's maximum detection.
-
 ```{r q03}
-DTac[, .N, by = animal_id]                        # rows per tag
-DTac[, .(max_det = max(detections)), by = animal_id]    # peak detection per tag
+DTac[, .N, by = animal_id] # rows per tag
+DTac[, .(max_det = max(detections)), by = animal_id] # peak detection per tag
 ```
 
 ## Q4 · .SD group columns {#q04}
-
-**.SD** is the Subset of Data for each group — all non-group columns inside j.
-
-Combine with `.SDcols` to apply functions across selected numeric columns.
-
-Mean depth and pitch per biologging burst.
-
 ```{r q04}
 DTbio[, lapply(.SD, mean), by = burst_id, .SDcols = c("depth_m", "pitch_deg")]
 ```
 
-**Example 2 — reef:** mean **`count`** and **`depth_m`** per **`site`** via **`.SD`**.
+**Ex 2.**
 
 ```{r q04-reef}
 DTreef[, lapply(.SD, mean), by = site, .SDcols = c("count", "depth_m")]
 ```
 
-**Example 3 — fishery:** min and max **`tonnes`** per **`port`**.
+**Ex 2.**
 
 ```{r q04-fishery}
 DTfish[, .(min_t = min(tonnes), max_t = max(tonnes)), by = port]
 ```
 
 ## Q5 · := assign by reference {#q05}
-
-**`:=`** adds or updates columns in place without copying the whole table — fast but side-effectful.
-
-Start with simple global assignments before grouped := patterns.
-
-Add kilograms column to fishery landings.
-
 ```{r q05}
-DTfish[, kg := tonnes * 1000]                     # new column in place
-head(DTfish[, .(species, tonnes, kg)])                  # verify conversion
+DTfish[, kg := tonnes * 1000] # new column in place
+head(DTfish[, .(species, tonnes, kg)])
 ```
 
 ## Q6 · setorder() fast sort {#q06}
-
-**`setorder()`** sorts by reference; sorting biologging by burst and second prepares time-series ops.
-
-Unlike dplyr arrange, setorder mutates the table — copy first if you need the original order.
-
-Order biolog by burst_id then seconds.
-
 ```{r q06}
-setorder(DTbio, burst_id, seconds)                # in-place sort
-head(DTbio, 5)                                          # inspect first rows
+setorder(DTbio, burst_id, seconds) # in-place sort
+head(DTbio, 5)
 ```
 
 ## Q7 · Keys and binary search {#q07}
-
-A **key** indexes sorted column(s) — subsetting `DT[id]` uses binary search without merge syntax.
-
-Set keys on animal_id for acoustic lookups.
-
-Key acoustic table and extract animal A101.
-
 ```{r q07}
-DTac_k <- copy(DTac)                              # avoid mutating shared object
-setkey(DTac_k, animal_id)                               # sort and index
-DTac_k["A101"]                                          # fast row subset
+DTac_k <- copy(DTac) # avoid mutating shared object
+setkey(DTac_k, animal_id)
+DTac_k["A101"]
 ```
 
 ## Q8 · merge() joins {#q08}
-
-**`merge()`** joins tables; with keys set, joins can be faster but always check nrow after.
-
-Attach port region metadata to fishery landings.
-
 ```{r q08}
 ports <- data.table(port = c("Cairns", "Broome", "Mooloolaba"),
                       region = c("GBR", "NW", "SEQ"))
-merge(DTfish, ports, by = "port", all.x = TRUE)         # keep all landings
+merge(DTfish, ports, by = "port", all.x = TRUE) # keep all landings
 ```
 
-**Example 2 — acoustic:** join **`animal_id`** to tag **`cohort`** metadata.
+**Ex 2.**
 
 ```{r q08-acoustic}
 meta <- data.table(animal_id = c("A101", "A102", "A103"), cohort = c(2023, 2023, 2024))
 merge(DTac, meta, by = "animal_id", all.x = TRUE)[1:6]
 ```
 
-**Example 3 — reef:** join **`site`** management onto transects (many rows per site).
+**Ex 2.**
 
 ```{r q08-reef}
 site_meta <- data.table(site = c("North", "South", "East"), mgmt = c("MPA", "Open", "MPA"))
@@ -195,68 +134,40 @@ merge(DTreef, site_meta, by = "site")[1:6]
 ```
 
 ## Q9 · rbindlist() stack {#q09}
-
-**`rbindlist()`** binds a list of data.tables quickly — stack survey legs or batches.
-
-Use `fill = TRUE` when column sets differ slightly.
-
-Stack North and South reef subsets.
-
 ```{r q09}
-north <- DTreef[site == "North"]                  # subset table
-south <- DTreef[site == "South"]                        # another subset
-rbindlist(list(north, south), use.names = TRUE)         # combined table
+north <- DTreef[site == "North"] # subset table
+south <- DTreef[site == "South"]
+rbindlist(list(north, south), use.names = TRUE) # combined table
 ```
 
 ## Q10 · dcast() wide {#q10}
-
-**`dcast()`** pivots long to wide — detection totals by animal and receiver.
-
-Provide fun.aggregate when duplicate keys exist.
-
-Wide matrix of summed detections.
-
 ```{r q10}
 dcast(DTac, animal_id ~ receiver, value.var = "detections", fun.aggregate = sum, fill = 0)
 ```
 
 ## Q11 · melt() long {#q11}
-
-**`melt()`** unpivots wide tables — inverse of dcast for export pipelines.
-
-Set id.vars to columns that identify rows.
-
-Melt wide 2020 landings by species columns.
-
 ```{r q11}
 wide <- dcast(DTfish[year == 2020], year ~ species, value.var = "tonnes", fill = 0)
 melt(wide, id.vars = "year", variable.name = "species", value.name = "tonnes")
 ```
 
 ## Q12 · shift() like lag {#q12}
-
-**`shift()`** moves values within groups — lag and lead for time series inside bursts.
-
-Negative n shifts forward (lead); default n is one step lag.
-
-Depth change between consecutive seconds per burst.
-
 ```{r q12}
 DTbio[, depth_change := depth_m - shift(depth_m), by = burst_id]
 DTbio[!is.na(depth_change), .(burst_id, seconds, depth_change)][1:8]
 ```
 
-**Example 2 — fishery:** **`shift(tonnes)`** within **`species`** after **`setorder(species, year)`** (consecutive records).
+**Ex 2.**
 
 ```{r q12-fishery}
-DTf <- copy(DTfish)                                   # do not mutate capstone copy
-DTf[, year := as.integer(year)]                         # ensure sort order
+DTf <- copy(DTfish) # do not mutate capstone copy
+DTf[, year := as.integer(year)] # ensure sort order
 setorder(DTf, species, year)
 DTf[, tonnes_lag := shift(tonnes), by = species]
 DTf[!is.na(tonnes_lag), .(species, year, tonnes, tonnes_lag)][1:6]
 ```
 
-**Example 3 — acoustic:** **`shift(detections)`** within **`animal_id`** (ordered as in file).
+**Ex 2.**
 
 ```{r q12-acoustic}
 DTac[, det_lag := shift(detections), by = animal_id]
@@ -264,30 +175,23 @@ DTac[!is.na(det_lag), .(animal_id, receiver, detections, det_lag)][1:6]
 ```
 
 ## Q13 · fcase() like case_when {#q13}
-
-**`fcase()`** evaluates vectorised conditions top-down — fast alternative to dplyr case_when inside j.
-
-Use default= for a catch-all bin.
-
-Classify fishery landings into size bins.
-
 ```{r q13}
 DTfish[, size_bin := fcase(
   tonnes < 30, "small",
   tonnes < 70, "medium",
   default = "large"
 )]
-DTfish[, .N, by = size_bin]                             # bin counts
+DTfish[, .N, by = size_bin] # bin counts
 ```
 
-**Example 2 — reef:** depth class with **`fcase`**.
+**Ex 2.**
 
 ```{r q13-reef}
 DTreef[, depth_bin := fcase(depth_m < 5, "shallow", depth_m < 12, "mid", default = "deep")]
 DTreef[, .N, by = depth_bin]
 ```
 
-**Example 3 — acoustic:** activity flag from **`detections`**.
+**Ex 2.**
 
 ```{r q13-acoustic}
 DTac[, activity := fcase(detections == 0, "none", detections < 4, "low", default = "high")]
@@ -295,13 +199,6 @@ DTac[, .N, by = activity]
 ```
 
 ## Q14 · Grouped chain ; {#q14}
-
-Curly braces with semicolons run multiple j expressions on the same filtered table — compact EDA.
-
-Keep chains short and commented when teaching.
-
-East reef: overall means then top species counts.
-
 ```{r q14}
 east <- DTreef[site == "East"]
 {
@@ -311,64 +208,29 @@ east <- DTreef[site == "East"]
 ```
 
 ## Q15 · fread() big CSV {#q15}
-
-**`fread()`** reads large CSVs faster than read.csv from the same project-relative path.
-
-If fread is unavailable, read.csv plus as.data.table still works.
-
-Demonstrate fread on reef path with read.csv fallback.
-
 ```{r q15}
-reef_fread <- fread(data_path("reef_transects.csv"))    # fast read; same path as setup
-nrow(reef_fread)                                        # should match DTreef
+reef_fread <- fread(data_path("reef_transects.csv"))
+nrow(reef_fread) # should match DTreef
 ```
 
 ## Q16 · Telemetry aggregation {#q16}
-
-Group acoustic detections by reef_zone and receiver — standard passive telemetry summaries.
-
-Use .() in j for named columns ready for plotting.
-
-Sum detections and count rows per zone-receiver cell.
-
 ```{r q16}
 tel <- DTac[, .(total = sum(detections), n = .N), by = .(reef_zone, receiver)]
-tel[order(-total)][1:10]                                # top ten cells
+tel[order(-total)][1:10] # top ten cells
 ```
 
 ## Q17 · Fishery by year {#q17}
-
-Annual summaries with by = year mirror agency reports — sum tonnes and count records separately.
-
-Records and biomass answer different scientific questions.
-
-Tonnes and landing record counts per year.
-
 ```{r q17}
 DTfish[, .(tonnes = sum(tonnes), records = .N), by = year][order(year)]
 ```
 
 ## Q18 · Biologging rolling mean {#q18}
-
-Rolling means smooth depth noise along bursts — three-point centred window using shift sums.
-
-Production code may use frollmean; here we teach the lag-lead pattern explicitly.
-
-Centred three-second mean depth per burst.
-
 ```{r q18}
 DTbio[, roll_depth := (shift(depth_m, 1, type = "lag") + depth_m + shift(depth_m, 1, type = "lead")) / 3, by = burst_id]
 DTbio[!is.na(roll_depth), .(burst_id, seconds, depth_m, roll_depth)][1:8]
 ```
 
 ## Q19 · .BY in j {#q19}
-
-**.BY** exposes current by-group values inside j — handy for labels without repeating columns.
-
-.BY is a list; index the first element for single-column groups.
-
-Summarise detections with explicit zone label from .BY.
-
 ```{r q19}
 DTac[, .(
   zone = .BY[[1]],
@@ -377,13 +239,6 @@ DTac[, .(
 ```
 
 ## Q20 · data.table capstone {#q20}
-
-Capstone combines aggregation, merge, and ggplot on reef totals — meeting-ready output you verify before AI optimises.
-
-Check nrow after merge and that grouping columns match field definitions.
-
-Site totals joined to management metadata and plotted.
-
 ```{r q20}
 meta <- data.table(site = c("North", "South", "East"), mgmt = c("MPA", "Open", "MPA"))
 reef_sum <- DTreef[, .(total = sum(count), species_n = uniqueN(species)), by = site]
