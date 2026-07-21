@@ -23,6 +23,8 @@ This level follows how people actually learn technical skills: connect new ideas
 
 Use AI as a fast typist **after** you can narrate each line aloud. When a chatbot suggests `sapply()` where you needed `vapply()`, your mental model of return types is what keeps the manuscript honest.
 
+On **harder quests** (loops, `apply`, `split`, nested logic), you will see **two or three short examples** on different tables — reef, fishery, acoustic, biologging — so the pattern sticks before you mix datasets yourself.
+
 ```{r setup}
 #| include: false
 knitr::opts_chunk$set(fig.width=7, fig.height=4.2, dpi=120)
@@ -89,6 +91,23 @@ if (any(is.na(acoustic$detections))) {                # scalar if: only runs whe
 }
 ```
 
+**Example 2 — reef depth:** classify shallow vs deep transect rows with vectorised **`ifelse()`**.
+
+```{r q03-reef}
+reef$depth_class <- ifelse(reef$depth_m < 6, "shallow", "deep")  # threshold in metres
+table(reef$depth_class)                                 # how many rows in each class
+```
+
+**Example 3 — fishery trips:** mark large landings; use scalar **`if`** to warn when any trip exceeds 100 t.
+
+```{r q03-fishery}
+fishery$big_trip <- ifelse(fishery$tonnes >= 50, "major", "routine")  # vector flag on tonnes
+if (any(fishery$tonnes > 100, na.rm = TRUE)) {         # one decision for whole column
+  message("At least one landing exceeds 100 t — check port log")
+}
+table(fishery$big_trip)
+```
+
 ## Q4 · for loops on real rows {#q04}
 
 A **`for` loop** repeats code for each index — useful when row logic is sequential (running totals, burst windows) or too awkward to vectorise on day one. Loops are slower on huge data but **transparent**: you can `print()` inside and watch state change.
@@ -107,6 +126,31 @@ for (i in seq_along(burst_ids)) {                       # i indexes positions in
 }
 names(mean_depths) <- paste0("burst_", burst_ids)       # label output for inspection
 mean_depths                                             # print means per burst
+```
+
+**Example 2 — fishery:** total tonnes per **`port`** with a **`for`** loop (same pattern as burst means).
+
+```{r q04-fishery}
+ports <- unique(fishery$port)                         # each landing port once
+port_tot <- numeric(length(ports))                      # pre-allocate totals
+for (j in seq_along(ports)) {                           # index ports safely
+  p <- ports[j]                                         # current port name
+  port_tot[j] <- sum(fishery$tonnes[fishery$port == p])  # sum tonnes for that port
+}
+names(port_tot) <- ports                                # name for inspection
+port_tot
+```
+
+**Example 3 — acoustic:** sum **`detections`** per **`animal_id`** (typical tag-level loop before **`tapply`**).
+
+```{r q04-acoustic}
+tags <- unique(acoustic$animal_id)                    # tagged animals in file
+tag_sum <- numeric(length(tags))                        # one total per tag
+for (k in seq_along(tags)) {                            # walk tag ids
+  tag_sum[k] <- sum(acoustic$detections[acoustic$animal_id == tags[k]])
+}
+names(tag_sum) <- tags
+tag_sum
 ```
 
 ## Q5 · Writing functions {#q05}
@@ -149,6 +193,21 @@ for (i in seq_along(sp)) {                              # fill cells with mean t
 apply(mat, 2, mean, na.rm = TRUE)                       # mean down rows: one value per port
 ```
 
+**Example 2 — reef:** species counts as a matrix (transects × species); **`apply(..., 1, sum)`** = fish per transect.
+
+```{r q06-reef}
+reef_mat <- as.matrix(xtabs(count ~ transect_id + species, data = reef))  # wide count matrix
+apply(reef_mat, 1, sum)[1:4]                            # total fish on first four transects
+apply(reef_mat, 2, mean)                                # mean count per species column
+```
+
+**Example 3 — acoustic:** detections by **`animal_id`** × **`reef_zone`**; column sums = zone totals across animals.
+
+```{r q06-acoustic}
+ac_mat <- as.matrix(xtabs(detections ~ animal_id + reef_zone, data = acoustic))
+apply(ac_mat, 2, sum)                                   # detections summed per reef zone
+```
+
 ## Q7 · lapply() lists {#q07}
 
 `lapply()` applies a function to each element of a **list** and always returns a list. That predictability makes it safer than `sapply()` when teaching — and when auditing AI code.
@@ -164,6 +223,22 @@ richness <- lapply(by_site, function(df) {              # function runs on each 
 })
 richness                                              # list of one integer per site
 unlist(richness)                                        # flatten to named vector
+```
+
+**Example 2 — fishery:** **`lapply()`** on **`split(tonnes, year)`** for annual vectors, then **`sum`** inside each.
+
+```{r q07-fishery}
+by_year <- split(fishery$tonnes, fishery$year)        # list of tonne vectors per year
+year_sums <- lapply(by_year, sum)                       # total landed each year
+unlist(year_sums)
+```
+
+**Example 3 — biologging:** **`lapply()`** on burst splits for max depth per burst.
+
+```{r q07-biolog}
+by_burst <- split(biolog$depth_m, biolog$burst_id)    # depth vectors per burst
+max_depths <- lapply(by_burst, max)                     # peak depth each burst
+head(unlist(max_depths))
 ```
 
 ## Q8 · sapply() simplification traps {#q08}
@@ -216,6 +291,20 @@ as.data.frame(unlist(mean_counts))                     # quick rectangular view
 sapply(counts_by_sp, mean)
 ```
 
+**Example 2 — fishery:** split **`tonnes`** by **`species`**, **`lapply`** with **`mean`**.
+
+```{r q10-fishery}
+tonnes_by_sp <- split(fishery$tonnes, fishery$species)
+lapply(tonnes_by_sp, mean)
+```
+
+**Example 3 — acoustic:** split **`detections`** by **`receiver`**, return **`sum`** per receiver station.
+
+```{r q10-acoustic}
+by_rx <- split(acoustic$detections, acoustic$receiver)
+sapply(by_rx, sum)                                      # named vector of station totals
+```
+
 ## Q11 · tapply() group means {#q11}
 
 `tapply()` applies a function to subsets defined by a **factor-like index** and returns a compact array — often the fastest mental path to “mean depth by site”.
@@ -265,6 +354,21 @@ d_pitch <- mapply(function(a, b) abs(b - a),            # pairwise function
                   pitch[-length(pitch)],                 # earlier second
                   pitch[-1])                             # next second
 head(d_pitch)                                           # first few step changes
+```
+
+**Example 2 — fishery:** paired **`year`** and **`tonnes`** — flag years where landings beat the previous row in file order.
+
+```{r q13-fishery}
+ord <- order(fishery$year)                              # sort by year for pairing
+t <- fishery$tonnes[ord]                                # tonnes in year order
+increase <- mapply(function(prev, curr) curr > prev, t[-length(t)], t[-1])  # TRUE if this trip > previous
+head(increase)
+```
+
+**Example 3 — reef:** **`mapply`** on **`count`** and **`depth_m`** to compute count-per-metre depth (watch zeros).
+
+```{r q13-reef}
+mapply(function(c, d) if (d > 0) c / d else NA_real_, reef$count, reef$depth_m)[1:6]
 ```
 
 ## Q14 · set.seed() & sample() {#q14}
@@ -349,6 +453,31 @@ for (i in seq_len(nrow(reef))) {                        # row-wise loop for clar
 table(qc)                                               # summary of flags
 ```
 
+**Example 2 — fishery:** port-specific rules (Broome trips flagged for review).
+
+```{r q18-fishery}
+fqc <- rep("ok", nrow(fishery))                       # default label
+for (i in seq_len(nrow(fishery))) {
+  if (is.na(fishery$tonnes[i])) {
+    fqc[i] <- "missing_tonnes"
+  } else if (fishery$port[i] == "Broome" && fishery$tonnes[i] > 60) {
+    fqc[i] <- "review_broome"
+  } else if (fishery$tonnes[i] == 0) {
+    fqc[i] <- "zero_landings"
+  }
+}
+table(fqc)
+```
+
+**Example 3 — acoustic:** prioritise **`Lagoon`** high-detection rows for receiver checks.
+
+```{r q18-acoustic}
+ac_qc <- ifelse(is.na(acoustic$detections), "missing",
+  ifelse(acoustic$reef_zone == "Lagoon" & acoustic$detections > 5, "lagoon_hot",
+    ifelse(acoustic$detections == 0, "zero", "ok")))
+table(ac_qc)
+```
+
 ## Q19 · Loop vs vectorised choice {#q19}
 
 Vectorised operations let R push work to compiled C loops — faster and often clearer for element-wise math. **`for` loops** still win for complex state, irregular sequences, or teaching.
@@ -367,6 +496,23 @@ for (i in 1:50) {
   loop_cent[i] <- biolog$pitch_deg[i] - mean(biolog$pitch_deg[biolog$burst_id == bid])
 }
 all.equal(loop_cent, centred[1:50])                     # methods should agree
+```
+
+**Example 2 — reef:** vectorised **`count * 0.1`** vs loop for biomass proxy on first 20 rows.
+
+```{r q19-reef}
+vec_bio <- reef$count * 0.1                             # vectorised
+loop_bio <- numeric(20)
+for (i in 1:20) { loop_bio[i] <- reef$count[i] * 0.1 }
+all.equal(vec_bio[1:20], loop_bio)
+```
+
+**Example 3 — fishery:** **`cumsum`** is vectorised; loop reproduces cumulative tonnes by row order.
+
+```{r q19-fishery}
+ord <- order(fishery$year, fishery$species)
+t <- fishery$tonnes[ord]
+all.equal(cumsum(t), { out <- numeric(length(t)); for (i in seq_along(t)) out[i] <- sum(t[1:i]); out })
 ```
 
 ## Q20 · Base R mini-capstone {#q20}

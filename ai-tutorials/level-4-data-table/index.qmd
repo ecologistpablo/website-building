@@ -23,6 +23,8 @@ Keys, binary search, and `:=` assignment by reference are performance tools, but
 
 When CSVs grow large, **`fread()`** replaces **`read.csv()`**; we note it in a quest but keep setup on `read.csv()` so renders stay portable.
 
+Core syntax quests (**`[i, j, by]`**, **`.SD`**, **`merge`**, **`shift`**, **`fcase`**) repeat on **reef, fishery, acoustic, and biologging** tables so you read the expression, not one memorised column name.
+
 ```{r setup}
 #| include: false
 knitr::opts_chunk$set(fig.width=7, fig.height=4.2, dpi=120)
@@ -71,6 +73,24 @@ Mean count by species for North site transects only.
 DTreef[site == "North", .(mean_count = mean(count)), by = species]
 ```
 
+**Example 2 — fishery:** mean **`tonnes`** by **`species`** for **`port == "Cairns"`**.
+
+```{r q02-fishery}
+DTfish[port == "Cairns", .(mean_t = mean(tonnes)), by = species]
+```
+
+**Example 3 — acoustic:** sum **`detections`** by **`receiver`** in **`reef_zone == "Lagoon"`**.
+
+```{r q02-acoustic}
+DTac[reef_zone == "Lagoon", .(total = sum(detections)), by = receiver]
+```
+
+**Example 4 — biologging:** max **`depth_m`** by **`burst_id`**.
+
+```{r q02-biolog}
+DTbio[, .(max_depth = max(depth_m)), by = burst_id][1:5]
+```
+
 ## Q3 · .N and .I {#q03}
 
 **.N** counts rows in the current group; **.I** holds indices for within-group positions.
@@ -94,6 +114,18 @@ Mean depth and pitch per biologging burst.
 
 ```{r q04}
 DTbio[, lapply(.SD, mean), by = burst_id, .SDcols = c("depth_m", "pitch_deg")]
+```
+
+**Example 2 — reef:** mean **`count`** and **`depth_m`** per **`site`** via **`.SD`**.
+
+```{r q04-reef}
+DTreef[, lapply(.SD, mean), by = site, .SDcols = c("count", "depth_m")]
+```
+
+**Example 3 — fishery:** min and max **`tonnes`** per **`port`**.
+
+```{r q04-fishery}
+DTfish[, .(min_t = min(tonnes), max_t = max(tonnes)), by = port]
 ```
 
 ## Q5 · := assign by reference {#q05}
@@ -148,6 +180,20 @@ ports <- data.table(port = c("Cairns", "Broome", "Mooloolaba"),
 merge(DTfish, ports, by = "port", all.x = TRUE)         # keep all landings
 ```
 
+**Example 2 — acoustic:** join **`animal_id`** to tag **`cohort`** metadata.
+
+```{r q08-acoustic}
+meta <- data.table(animal_id = c("A101", "A102", "A103"), cohort = c(2023, 2023, 2024))
+merge(DTac, meta, by = "animal_id", all.x = TRUE)[1:6]
+```
+
+**Example 3 — reef:** join **`site`** management onto transects (many rows per site).
+
+```{r q08-reef}
+site_meta <- data.table(site = c("North", "South", "East"), mgmt = c("MPA", "Open", "MPA"))
+merge(DTreef, site_meta, by = "site")[1:6]
+```
+
 ## Q9 · rbindlist() stack {#q09}
 
 **`rbindlist()`** binds a list of data.tables quickly — stack survey legs or batches.
@@ -200,6 +246,23 @@ DTbio[, depth_change := depth_m - shift(depth_m), by = burst_id]
 DTbio[!is.na(depth_change), .(burst_id, seconds, depth_change)][1:8]
 ```
 
+**Example 2 — fishery:** **`shift(tonnes)`** within **`species`** after **`setorder(species, year)`** (consecutive records).
+
+```{r q12-fishery}
+DTf <- copy(DTfish)                                   # do not mutate capstone copy
+DTf[, year := as.integer(year)]                         # ensure sort order
+setorder(DTf, species, year)
+DTf[, tonnes_lag := shift(tonnes), by = species]
+DTf[!is.na(tonnes_lag), .(species, year, tonnes, tonnes_lag)][1:6]
+```
+
+**Example 3 — acoustic:** **`shift(detections)`** within **`animal_id`** (ordered as in file).
+
+```{r q12-acoustic}
+DTac[, det_lag := shift(detections), by = animal_id]
+DTac[!is.na(det_lag), .(animal_id, receiver, detections, det_lag)][1:6]
+```
+
 ## Q13 · fcase() like case_when {#q13}
 
 **`fcase()`** evaluates vectorised conditions top-down — fast alternative to dplyr case_when inside j.
@@ -215,6 +278,20 @@ DTfish[, size_bin := fcase(
   default = "large"
 )]
 DTfish[, .N, by = size_bin]                             # bin counts
+```
+
+**Example 2 — reef:** depth class with **`fcase`**.
+
+```{r q13-reef}
+DTreef[, depth_bin := fcase(depth_m < 5, "shallow", depth_m < 12, "mid", default = "deep")]
+DTreef[, .N, by = depth_bin]
+```
+
+**Example 3 — acoustic:** activity flag from **`detections`**.
+
+```{r q13-acoustic}
+DTac[, activity := fcase(detections == 0, "none", detections < 4, "low", default = "high")]
+DTac[, .N, by = activity]
 ```
 
 ## Q14 · Grouped chain ; {#q14}

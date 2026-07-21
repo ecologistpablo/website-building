@@ -23,6 +23,8 @@ Learning progresses when you connect new syntax to problems you already solved i
 
 Treat **dplyr** as a contract with your data: every verb documents an intent. When autocomplete proposes five chained steps, you decide whether each step is necessary — that is the scientific reasoning habit Klahr and Dunbar describe in experiment design, applied to code.
 
+Harder verbs (**`group_by`**, **`lead`/`lag`**, **`case_when`**, **`across`**, joins, pivots) include **multiple worked examples** on reef, fishery, acoustic, and biologging tables so you recognise the verb, not just one homework dataset.
+
 ```{r setup}
 #| include: false
 knitr::opts_chunk$set(fig.width=7, fig.height=4.2, dpi=120)
@@ -170,6 +172,22 @@ reef_site_mean <- reef |>                        # transect counts
 reef_site_mean                                          # three rows expected
 ```
 
+**Example 2 — fishery:** mean **`tonnes`** landed per **`species`**.
+
+```{r q08-fishery}
+fishery |>
+  group_by(species) |>
+  summarise(mean_t = mean(tonnes), n = n(), .groups = "drop")
+```
+
+**Example 3 — acoustic:** total **`detections`** per **`animal_id`** (sum, not mean — common telemetry summary).
+
+```{r q08-acoustic}
+acoustic |>
+  group_by(animal_id) |>
+  summarise(total_det = sum(detections), n_receivers = n_distinct(receiver), .groups = "drop")
+```
+
 ## Q9 · count() quick tables {#q09}
 
 **`count()`** is shorthand for `group_by()` + `summarise(n = n())`, ideal for frequency tables before modelling.
@@ -200,6 +218,27 @@ depth_steps <- biolog_ord |>                     # sorted biolog data
 head(depth_steps, 8)                                    # inspect changes
 ```
 
+**Example 2 — biologging pitch:** same pattern on **`pitch_deg`** within bursts.
+
+```{r q10-pitch}
+biolog_ord |>
+  group_by(burst_id) |>
+  mutate(pitch_step = pitch_deg - lag(pitch_deg)) |>
+  filter(!is.na(pitch_step)) |>
+  slice_head(n = 4)
+```
+
+**Example 3 — fishery (file order):** **`lag(tonnes)`** within **`species`** to compare consecutive landing records in the CSV order (not true calendar time — always check sort first).
+
+```{r q10-fishery}
+fishery |>
+  arrange(species, year) |>
+  group_by(species) |>
+  mutate(tonnes_prev = lag(tonnes), delta_t = tonnes - lag(tonnes)) |>
+  filter(!is.na(delta_t)) |>
+  head(6)
+```
+
 ## Q11 · if_else() & case_when() {#q11}
 
 **`if_else()`** is strict typed ifelse for two branches; **`case_when()`** handles multiple rules readable top-to-bottom — like nested QC without spaghetti.
@@ -220,6 +259,26 @@ fishery_bins <- fishery |>                       # landing records
 count(fishery_bins, size_bin)                           # bin frequencies
 ```
 
+**Example 2 — reef depth zones** with **`case_when()`** (MPA planning bins).
+
+```{r q11-reef}
+reef |>
+  mutate(depth_zone = case_when(
+    depth_m < 5 ~ "upper",
+    depth_m < 10 ~ "mid",
+    TRUE ~ "deep"
+  )) |>
+  count(site, depth_zone)
+```
+
+**Example 3 — acoustic activity** with strict **`if_else()`** (two outcomes only).
+
+```{r q11-acoustic}
+acoustic |>
+  mutate(active = if_else(detections >= 4, "high", "low")) |>
+  count(reef_zone, active)
+```
+
 ## Q12 · across() many columns {#q12}
 
 **`across()`** applies a function to multiple columns selected by name or helper — the tidy way to scale numeric columns without copy-paste.
@@ -232,6 +291,23 @@ Z-score numeric columns in biologging (within full table demo).
 biolog_scaled <- biolog |>                       # burst time series
   mutate(across(c(depth_m, pitch_deg), ~ as.numeric(scale(.))))  # z-scores
 summary(biolog_scaled$depth_m)                          # mean ~0, sd ~1
+```
+
+**Example 2 — reef:** scale **`count`** and **`depth_m`** after filtering **`site == "North"`**.
+
+```{r q12-reef}
+reef |>
+  filter(site == "North") |>
+  mutate(across(c(count, depth_m), ~ as.numeric(scale(.)))) |>
+  summarise(across(c(count, depth_m), mean))
+```
+
+**Example 3 — fishery:** **`across`** with **`mean`** and **`sd`** on **`tonnes`** by **`port`**.
+
+```{r q12-fishery}
+fishery |>
+  group_by(port) |>
+  summarise(across(tonnes, list(mean = mean, sd = sd), .names = "{.fn}_{.col}"))
 ```
 
 ## Q13 · group_modify() custom tables {#q13}
@@ -253,6 +329,27 @@ sp_range <- reef |>                             # species counts
     )
   })
 sp_range                                                # custom table per species
+```
+
+**Example 2 — fishery:** range of **`tonnes`** per **`port`**.
+
+```{r q13-fishery}
+fishery |>
+  group_by(port) |>
+  group_modify(~ tibble(min_t = min(.x$tonnes), max_t = max(.x$tonnes)))
+```
+
+**Example 3 — acoustic:** top **`receiver`** by summed **`detections`** per **`animal_id`**.
+
+```{r q13-acoustic}
+acoustic |>
+  group_by(animal_id) |>
+  group_modify(~ {
+    .x |>
+      group_by(receiver) |>
+      summarise(d = sum(detections), .groups = "drop") |>
+      slice_max(d, n = 1)
+  })
 ```
 
 ## Q14 · mutate(.by = ) {#q14}
@@ -290,6 +387,27 @@ fishery_geo <- fishery |>                               # landings left side
 count(fishery_geo, region)                              # rows per region
 ```
 
+**Example 2 — acoustic:** join tag **`metadata`** (hypothetical deployment reef) onto detections.
+
+```{r q15-acoustic}
+tag_meta <- tibble(
+  animal_id = c("A101", "A102", "A103"),
+  tag_type = c("V16", "V16", "V13")
+)
+acoustic |>
+  left_join(tag_meta, by = "animal_id") |>
+  count(tag_type, reef_zone)
+```
+
+**Example 3 — reef:** join **`site`** management zone onto transects.
+
+```{r q15-reef}
+site_meta <- tibble(site = c("North", "South", "East"), zone = c("MPA", "Open", "MPA"))
+reef |>
+  left_join(site_meta, by = "site") |>
+  distinct(site, zone)
+```
+
 ## Q16 · bind_rows() stack surveys {#q16}
 
 **`bind_rows()`** stacks compatible data frames — binding years or survey legs after harmonising column names.
@@ -325,6 +443,26 @@ wide_demo <- fishery |>                          # long landings
 long_demo <- wide_demo |>                               # now melt back
   pivot_longer(everything(), names_to = "species", values_to = "tonnes", values_drop_na = TRUE)
 long_demo                                               # long form restored
+```
+
+**Example 2 — reef:** one transect wide by species, then long again for plotting.
+
+```{r q17-reef}
+reef |>
+  filter(transect_id == "T01") |>
+  select(species, count) |>
+  pivot_wider(names_from = species, values_from = count) |>
+  pivot_longer(everything(), names_to = "species", values_to = "count")
+```
+
+**Example 3 — biologging:** **`pivot_longer()`** on **`depth_m`** and **`pitch_deg`** for one burst (sensor comparison).
+
+```{r q17-biolog}
+biolog |>
+  filter(burst_id == 1) |>
+  select(seconds, depth_m, pitch_deg) |>
+  pivot_longer(c(depth_m, pitch_deg), names_to = "sensor", values_to = "value") |>
+  head(6)
 ```
 
 ## Q18 · pivot_wider() {#q18}

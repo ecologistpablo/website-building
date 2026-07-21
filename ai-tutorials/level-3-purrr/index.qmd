@@ -23,6 +23,8 @@ Lists show up constantly in ecology — receivers nested in arrays, burst segmen
 
 Parallel **`furrr`** is optional horsepower after correctness. Get the serial map right, then scale — the same scientific habit: validate on one unit before running the whole fleet.
 
+On dense quests (**`map`**, **`map2`**, **`pmap`**, **`safely`**, **`map_dfr`**), you will practice the same function on **two or three ecological tables** so the list structure — not the column names — is what you remember.
+
 ```{r setup}
 #| include: false
 knitr::opts_chunk$set(fig.width=7, fig.height=4.2, dpi=120)
@@ -73,6 +75,20 @@ species_lists                                           # list of character vect
 lengths(species_lists)                                  # how many species per site
 ```
 
+**Example 2 — fishery ports:** **`split`** landings by **`port`**, **`map`** **`nrow`**.
+
+```{r q02-fishery}
+by_port <- split(fishery, fishery$port)
+map_int(by_port, nrow)
+```
+
+**Example 3 — acoustic zones:** **`map_chr`** the dominant **`receiver`** per zone (first row demo).
+
+```{r q02-acoustic}
+by_zone <- split(acoustic, acoustic$reef_zone)
+map_chr(by_zone, ~ .x$receiver[1])
+```
+
 ## Q3 · map_dbl(), map_chr() {#q03}
 
 Typed maps **`map_dbl()`**, **`map_int()`**, **`map_chr()`** assert return types — the purrr analogue of `vapply()` from Level 1.
@@ -101,6 +117,19 @@ head(labels)                                            # first few composite id
 length(labels) == nrow(fishery)                         # lengths must match
 ```
 
+**Example 2 — reef:** **`map2_dbl`** on **`count`** and **`depth_m`** for count-to-depth ratio.
+
+```{r q04-reef}
+map2_dbl(reef$count, reef$depth_m, function(c, d) if (d > 0) c / d else NA_real_)[1:5]
+```
+
+**Example 3 — biologging:** **`map2_dbl`** on consecutive depths within burst 1 (step changes).
+
+```{r q04-biolog}
+b1 <- biolog[biolog$burst_id == 1, ]
+map2_dbl(b1$depth_m[-length(b1$depth_m)], b1$depth_m[-1], ~ .y - .x)[1:5]
+```
+
 ## Q5 · pmap() row-wise {#q05}
 
 **`pmap()`** maps over rows of a data frame — row-wise logic without an explicit index `i`.
@@ -115,6 +144,22 @@ summaries <- pmap_chr(ac5, function(animal_id, receiver, detections, reef_zone) 
   paste0(animal_id, " @ ", receiver, ": ", detections, " (", reef_zone, ")")
 })
 summaries                                               # one string per row
+```
+
+**Example 2 — reef:** **`pmap_chr`** on first three transect rows ( **`transect_id`**, **`species`**, **`count`** ).
+
+```{r q05-reef}
+r3 <- reef |> slice_head(n = 3)
+pmap_chr(r3, function(transect_id, site, species, count, depth_m) {
+  paste0(transect_id, " ", species, ": ", count, " @ ", site)
+})
+```
+
+**Example 3 — fishery:** **`pmap`** on **`year`**, **`species`**, **`tonnes`** for report lines.
+
+```{r q05-fishery}
+f3 <- fishery |> slice_head(n = 3)
+pmap_chr(f3, function(year, species, tonnes, port) paste0(year, " ", species, " ", tonnes, "t @ ", port))
 ```
 
 ## Q6 · map_dfr() simulations {#q06}
@@ -134,6 +179,22 @@ sim <- map_dfr(sp, function(s) {                        # one df per species
 sim                                                     # stacked draws
 ```
 
+**Example 2 — fishery:** three **`runif`** landings per **`port`**.
+
+```{r q06-fishery}
+ports <- unique(fishery$port)
+map_dfr(ports, function(p) {
+  tibble(port = p, tonnes = runif(3, 20, 90))
+})
+```
+
+**Example 3 — acoustic:** simulate **`rpois`** detection counts per **`receiver`**.
+
+```{r q06-acoustic}
+rx <- unique(acoustic$receiver)[1:4]
+map_dfr(rx, function(r) tibble(receiver = r, sim_det = rpois(3, lambda = 4)))
+```
+
 ## Q7 · safely() errors as data {#q07}
 
 **`safely()`** wraps a function to return `result` or `error` instead of stopping — essential on messy field spreadsheets.
@@ -147,6 +208,20 @@ raw <- c("12", "4.5", "NA", "oops")               # mixed strings
 parsed <- map(raw, safely(as.numeric))                  # list of result/error
 ok <- map_lgl(parsed, ~ is.null(.x$error))              # which succeeded
 map_dbl(parsed[ok], "result")                           # extract numeric successes
+```
+
+**Example 2 — reef counts as character** (typo **`"12a"`** in a fake vector).
+
+```{r q07-reef}
+raw_counts <- c("8", "12", "12a", "3")
+map(raw_counts, safely(as.numeric))
+```
+
+**Example 3 — fishery tonnes strings** with empty field.
+
+```{r q07-fishery}
+raw_t <- c("45.2", "", "88")
+map(raw_t, safely(as.numeric))
 ```
 
 ## Q8 · walk() side effects {#q08}
