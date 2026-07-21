@@ -28,7 +28,7 @@ website:
       - href: tutorials/index.qmd
         text: Human R Tutorials
       - href: ai-tutorials/index.qmd
-        text: AI Tutorials
+        text: AI R Tutorials
     right:
       - icon: instagram
         href: https://www.instagram.com/ecologist.pablo/

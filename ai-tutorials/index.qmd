@@ -1,5 +1,5 @@
 ---
-title: "AI Tutorials"
+title: "AI R Tutorials"
 subtitle: "Written with AI — to teach you how to code without leaning on it."
 sidebar: ai-curriculum
 listing:
@@ -68,7 +68,7 @@ Types, memory, algorithms, debugging, reproducibility, and how to plan an analys
 
 ::: {.quest-hub}
 <p class="quest-hub__title">100 quests across five modules</p>
-<p class="quest-hub__hint"><strong>Human R Tutorials</strong> on this site are full field workflows (telemetry, dive logs). <strong>AI Tutorials</strong> are the structured curriculum — practice until the pattern is yours, then use any tool you like for speed.</p>
+<p class="quest-hub__hint"><strong>Human R Tutorials</strong> on this site are full field workflows (telemetry, dive logs). <strong>AI R Tutorials</strong> are the structured curriculum — practice until the pattern is yours, then use any tool you like for speed.</p>
 :::
 
 Learning works best in short segments with feedback ([Bransford et al., 2000](https://nap.nationalacademies.org/catalog/9853/how-people-learn-brain-mind-experience-and-school-expanded-edition)). Treat each quest like a lab exercise: predict the output, run the chunk, revise your mental model ([Klahr & Dunbar, 1988](https://doi.org/10.1016/0166-4115(88)90004-2)).

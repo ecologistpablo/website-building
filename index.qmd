@@ -16,7 +16,7 @@ anchor-sections: false
 ::: {.hero__actions}
 [Read the blog](blog/index.qmd){.btn-ocean}
 [Human R Tutorials](tutorials/index.qmd){.btn-ghost}
-[AI Tutorials](ai-tutorials/index.qmd){.btn-ghost}
+[AI R Tutorials](ai-tutorials/index.qmd){.btn-ghost}
 :::
 :::
 :::
