@@ -1,6 +1,6 @@
 ---
 title: "AI R Tutorials"
-subtitle: "Written by AI — to teach you how to code without AI."
+subtitle: "Learn R first — then you can trust (and fix) what AI writes."
 sidebar: ai-curriculum
 listing:
   contents:
@@ -13,10 +13,6 @@ format:
   html:
     page-layout: article
 ---
-
-<p class="ai-tagline">To use AI for coding, learn to code first. ~10 min quests, shared ecology CSVs, one space then <code># comment</code>.</p>
-
-Sidebar = full quest list. Or pick a tab:
 
 ## Functional programming
 
@@ -43,6 +39,8 @@ Vectors, `if`/`else`, loops, `apply`, `lapply`. [Open →](level-1-base-r/index.
 ## Computer science crash course
 
 Types, memory, debugging, reproducibility — light R. [Open →](cs-crash-course/index.qmd)
+
+Use the **Coding curriculum** sidebar for every quest, or open a track above.
 
 **Human R Tutorials** = full field workflows. **AI R Tutorials** = skill drills.
 

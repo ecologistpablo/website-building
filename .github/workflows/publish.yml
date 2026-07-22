@@ -23,7 +23,13 @@ jobs:
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
-      # No R here: pages render from the committed _freeze/ cache.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pyyaml
+
+      # Pre-render syncs AI sidebar; pages render from committed _freeze/ cache.
       - run: quarto render
 
       - uses: actions/upload-pages-artifact@v3
