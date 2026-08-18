@@ -1,0 +1,118 @@
+---
+title: "Talk to websites in R!"
+subtitle: "Accessing the IMOS thredds server to scrape environmental data"
+date: 2026-08-18
+categories: [data wrestling, R, quantitative ecology]
+image: kinematic_panel.png
+toc: true
+toc-depth: 3
+toc-title: "Contents "
+execute:
+  eval: false
+---
+
+## Overview
+
+Hi! Today we're going to learn how to access urls online via R and download data directly to your computer. We do this using rvest, however it can be done via https also in a very similar fashion.
+
+In Australia we are very fortunate to have a federal agency like Integrated Marine Observatory System (IMOS) create a huge repository of data across multiple disciplines, over decades for the entire continent. IMOS holds oceanography data collected from a plethora of different sources, including BRAN and OceanCurrent products. There is plenty of other variables for us to choose from, but for now we will stick with something simple. These data re stored as netcdfs (common data formats) on tables in websites, for the sole reason of allowing users to easily navigate their software systems to grab what we need.
+
+The basis of this function is easy to understand. We build a malleable URL string, that mimics what you would normally type in a search engine to get to where IMOS stores their data. We then loop through this URL with read_html, then return those titles as a tibble (table) in our R environment. We then use future to walk through this process multiple times, allowing for failures and interuptions to occur and letting us pick up where we left off, by reading the table, checking whether we have files downloaded, and if not, download them!
+
+Today, we are interested in SST data between 2012 - 2025.
+
+I have to cite Prof Dave Schoeman for teaching our Ocean Futures Research Cluster lab this nifty function in 2023. I was working with acoustic telemetry movement data for sharks, and we wanted remotely sensed data across a large scale (decades and over 1500km scale), to calculate temporal anomalies. Perhaps the latter half of that analysis can be a future tutorial.
+
+------------------------------------------------------------------------
+
+## 1. Libraries
+
+```{r setup}
+
+pacman::p_load("purrr", # functional programming
+               "furrr", # functional programming
+               "future", # future planning
+               "tidyverse", # we are only interesting in dplyr 
+               "RCurl", # downloading from websites
+               "rvest")  # the website talking package! 
+```
+
+------------------------------------------------------------------------
+
+## 2. Talk to websites!
+
+```{r import}
+
+rm(list=ls()) # lets work with a clean workspace - Feng Shui our IDE
+parallel::detectCores() #how much power does your comptuer have? I got 8 so I will use 6
+# never use all of your cores, your computer needs at least one to function, and two to do it well
+
+var_to_get <- "\\.nc$" # let's only download NC files from the directory
+setwd("~/Documents/USC/Honours/R/data/IMOS") #m y working directory, change to yours
+
+# Set up parallel processing
+plan(multisession, workers = 6) # Using x cores
+
+# Loop through years for your study period
+for (year in 2012:2012) {  #change if you have different study period 
+  #(year in 2023:2024) if you have multiple
+  # Set output folder and URL based on the year
+  output_folder <- paste0("SST/", year) # my output folder
+  if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE) # if the folder doesn't exist, make it
+  yurl <- paste0("https://mrs-data.csiro.au/imos-srs/sst/ghrsst/L3S-1d/dn/", year, "/") #the beginning string for year url 
+  
+  # Read HTML content
+  html <- rvest::read_html(yurl) #rvest helps us talk to websites
+  
+  # Extract table
+  file_tibble <- html %>% # the html object
+    html_node("table") %>% #turn it into a table 
+    html_table() #present it as a table
+  
+  # Filter files
+  files <- file_tibble %>% #turn table into tibble 
+    dplyr::select(Name) %>%  #read the Name column
+    filter(str_detect(Name, "GHRSST")) %>% 
+    pull(Name) #pull the names into the files tibble
+  
+  # if this function stops, don't re-download data to the same output folder
+  existing_files <- dir(output_folder, pattern = var_to_get) # setup an object for existing files
+  files <- files[!(files %in% existing_files)] # if files exist, don't re-download them
+  # and check this BEFORE you download more data 
+  
+  abs_output_folder <- normalizePath(output_folder, mustWork = TRUE) # if we don't have data, download them and put them here
+  
+  # Download files using parallel processing
+  future_walk(files, function(filename) { # future walk is walking via parallel
+    url <- paste0(yurl, filename) # paste together the URL and filename
+    destination <- file.path(abs_output_folder, filename) # push them both to the same destination
+    
+    message("Attempting to download from: ", url) #because we are civilised return msgs
+    message("Destination: ", destination) # and say where they go
+    
+    tryCatch({ # set up a catcher for the fetcher 
+      curl_download(url, destfile = destination, quiet = FALSE) # download the files 
+    }, error = function(e) { # if we get an erro code, attach this to it 
+      message(sprintf("Failed to download %s. Error: %s", url, e$message)) # msg string
+    })
+  })
+}
+
+# nice
+
+```
+
+How cool! In less than 100 lines - we can downlaod data from online portals
+We don't only have access to IMOS data now, we have access to any repository online that stores information through an accessible manner.
+
+You may think this takes a long time? I downloaded 300gb of SST files from 2012 - 2025 for the entire australian marine estate in a few hours, current data are even easier (files are 2mb each not 80 like SST). We actually have around ~35 variables inside this SST netcdf - so the world is your oyster.
+
+I've created a package for a website specifically using this easy workflow - SharkipediaR. I went to a conference, found a group of cool academics looking for someone to make their website into an R accessible tool to download data, and used https (in the same way) to talk to the website and download data directly to your IDE. 
+
+This saves the step of accessing info through csvs manually online.
+
+Hope this tutorial has helped you as much as it helped me! 
+
+Stay fishy my friends,
+
+Pablo 
