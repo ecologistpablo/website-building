@@ -3,7 +3,7 @@ title: "Talk to websites in R!"
 subtitle: "Accessing the IMOS thredds server to scrape environmental data"
 date: 2026-08-18
 categories: [data wrestling, R, quantitative ecology]
-image: kinematic_panel.png
+image: media-257210168.jpg
 toc: true
 toc-depth: 3
 toc-title: "Contents "
