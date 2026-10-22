@@ -36,6 +36,10 @@ Vectors, `if`/`else`, loops, `apply`, `lapply`. [Open →](level-1-base-r/index.
 
 :::
 
+## Ocean fields · |∇SST|
+
+Centred finite differences on a daily SST raster (°C km⁻¹)—spatial, not temporal. [Open →](sst-gradient-magnitude/index.qmd)
+
 ## Computer science crash course
 
 Types, memory, debugging, reproducibility — light R. [Open →](cs-crash-course/index.qmd)

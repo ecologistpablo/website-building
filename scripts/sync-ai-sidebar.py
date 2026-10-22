@@ -44,6 +44,16 @@ def sidebar_contents() -> list:
             "href": cs_href,
             "contents": cs_contents,
         },
+        {
+            "section": "Reading ocean rasters",
+            "href": "ai-tutorials/sst-gradient-magnitude/index.qmd",
+            "contents": [
+                {
+                    "text": "SST gradient magnitude (|∇SST|)",
+                    "href": "ai-tutorials/sst-gradient-magnitude/index.qmd",
+                },
+            ],
+        },
     ]
 
 

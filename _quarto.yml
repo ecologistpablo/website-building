@@ -267,6 +267,11 @@ website:
             href: ai-tutorials/cs-crash-course/index.qmd#q19
           - text: Q20 · CS capstone plan
             href: ai-tutorials/cs-crash-course/index.qmd#q20
+        - section: Reading ocean rasters
+          href: ai-tutorials/sst-gradient-magnitude/index.qmd
+          contents:
+          - text: SST gradient magnitude (|∇SST|)
+            href: ai-tutorials/sst-gradient-magnitude/index.qmd
 # <<< ai-curriculum-sidebar
   page-footer:
     border: false

@@ -1,0 +1,162 @@
+---
+title: "Ocean fields · SST gradient magnitude"
+description: "Compute |∇SST| (°C km⁻¹) from a daily SST raster with centred finite differences"
+date: 2026-10-22
+sidebar: ai-curriculum
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 2
+    code-fold: false
+freeze: true
+execute:
+  warning: false
+  message: false
+---
+
+## SST gradient magnitude in the simplest useful form
+
+Hey — Pablo here. This page is a **small, checkable skill**: given **one daily SST raster in °C**, compute **|∇SST|** in **°C km⁻¹** the way many movement–environment papers intend—**spatial** centred differences on the grid, not “temperature yesterday minus today.”
+
+If an AI hands you gradient code, run it on a **toy grid** first (below) and read the numbers before you trust a map.
+
+Authoritative prose for your methods section lives alongside this page in [`methods.md`](methods.md) in the site repo.
+
+---
+
+## What you are measuring
+
+- **Input:** one 2D SST layer for one day (°C).
+- **Output:** |∇SST| at each cell (°C km⁻¹).
+- **Not this:** a time slope at a point, a front-probability layer, or a regional mean SST gradient.
+
+---
+
+## Setup
+
+```{r setup}
+#| include: false
+knitr::opts_chunk$set(fig.width = 7, fig.height = 3.5, dpi = 120)
+suppressPackageStartupMessages(library(terra))
+```
+
+```{r packages}
+pacman::p_load(terra)
+```
+
+---
+
+## Step 1 — Toy SST raster (°C)
+
+Same idea as a sanity check on a tiny grid: a smooth east–west ramp.
+
+```{r toy-raster}
+sst <- terra::rast(
+  ncols = 5, nrows = 3,
+  xmin = 170, xmax = 171,
+  ymin = -45, ymax = -44.5,
+  crs = "EPSG:4326"
+)
+terra::values(sst) <- matrix(seq(20, 20.4, length.out = 15), ncol = 5, byrow = TRUE)
+sst
+```
+
+```{r plot-sst}
+plot(sst, main = "Toy SST (°C)")
+```
+
+---
+
+## Step 2 — Cell size in kilometres
+
+```{r cell-km}
+res <- terra::res(sst)
+clat <- mean(terra::yFromCell(sst, seq_len(min(5000L, terra::ncell(sst)))), na.rm = TRUE)
+dx_km <- as.numeric(res[1]) * 111.32 * cos(clat * pi / 180)
+dy_km <- as.numeric(res[2]) * 111.32
+c(dx_km = dx_km, dy_km = dy_km, mean_lat = clat)
+```
+
+At ~0.083° mid-latitude grids, \(\Delta x\) and \(\Delta y\) are often **~7–9 km**. Reanalysis SST (e.g. [Copernicus GLORYS12](https://data.marine.copernicus.eu/)) is typically provided on such a grid; always confirm **thetao is °C** in your file.
+
+---
+
+## Step 3 — Centred differences and |∇SST|
+
+```{r sst-grad-fn}
+sst_grad_magnitude_layer <- function(sst) {
+  if (is.null(sst) || !terra::ncell(sst)) return(NULL)
+  res <- terra::res(sst)
+  clat <- mean(terra::yFromCell(sst, seq_len(min(5000L, terra::ncell(sst)))), na.rm = TRUE)
+  dx_km <- as.numeric(res[1]) * 111.32 * cos(clat * pi / 180)
+  dy_km <- as.numeric(res[2]) * 111.32
+  if (!is.finite(dx_km) || dx_km <= 0 || !is.finite(dy_km) || dy_km <= 0) return(NULL)
+  w_x <- matrix(c(0, 0, 0, -0.5, 0, 0.5, 0, 0, 0), nrow = 3, ncol = 3)
+  w_y <- matrix(c(0, -0.5, 0, 0, 0, 0, 0, 0.5, 0), nrow = 3, ncol = 3)
+  gx <- terra::focal(sst, w = w_x, fun = sum, na.rm = TRUE, pad = TRUE) / dx_km
+  gy <- terra::focal(sst, w = w_y, fun = sum, na.rm = TRUE, pad = TRUE) / dy_km
+  sqrt(gx^2 + gy^2)
+}
+
+grad <- sst_grad_magnitude_layer(sst)
+summary(grad, na.rm = TRUE)
+```
+
+```{r plot-grad}
+plot(grad, main = expression("|"*nabla*SST|" (°C km"^-1*")"))
+```
+
+On a uniform east–west ramp, you should see **non-missing, finite** gradient values (mostly driven by the x-direction).
+
+---
+
+## Sanity checks
+
+```{r sanity}
+flat <- sst * 0 + 20
+g_flat <- sst_grad_magnitude_layer(flat)
+g_ramp <- sst_grad_magnitude_layer(sst)
+mean_flat <- terra::global(g_flat, "mean", na.rm = TRUE)[1, 1]
+mean_ramp <- terra::global(g_ramp, "mean", na.rm = TRUE)[1, 1]
+stopifnot(is.finite(mean_flat), is.finite(mean_ramp))
+stopifnot(mean_ramp > mean_flat, mean_ramp > 0)
+c(flat_mean = mean_flat, ramp_mean = mean_ramp)
+```
+
+- **Flat SST** → lower mean |∇SST| than a ramp (edges can be noisy with `pad = TRUE`).  
+- **Smooth ramp** → higher mean |∇SST|.  
+- If both fail, fix units or stencils before touching real data.
+
+---
+
+## Common confusions (quick table)
+
+| You might think… | Actually… |
+|------------------|-----------|
+| “Gradient = SST change over days” | That is a **time** derivative; here we difference **across cells** on one day |
+| “Kelvin vs Celsius breaks gradients” | **Differences** are the same size; still keep **one convention** for reporting SST |
+| “Coastal |∇SST| = offshore fronts” | Coastal magnitudes often reflect **shore structure**, not open-ocean mesoscale fronts |
+| “0.083° sees all fronts” | Mesoscale fronts are **partially** resolved; filaments are not |
+
+---
+
+## Paste-ready Methods sentence
+
+> For each calendar day, |∇SST| (°C km⁻¹) was computed on the native SST grid using centred finite differences; cell sizes were converted to kilometres with 111.32 km per degree of latitude and cosine-adjusted longitude spacing. Gradient magnitude was the Euclidean norm of the horizontal partial derivatives.
+
+More detail: [`methods.md`](methods.md).
+
+---
+
+## Next step (conceptual)
+
+When you link to tracking data: **extract** |∇SST| at fix coordinates, then **aggregate** to your model time step (e.g. daily mean). Downloading daily NetCDF from Copernicus is a separate workflow—start from a single SST layer you already trust.
+
+---
+
+## Go deeper (open access)
+
+- [terra](https://rspatial.org/terra/) — `focal`, `extract`, `res`  
+- [Copernicus Marine data store](https://data.marine.copernicus.eu/) — GLORYS12 and product docs  
+- Seminoff et al. (2008) — SST **fronts** in ecology (different product than cell-wise |∇SST|, but useful context): [doi:10.3354/esr00066](https://doi.org/10.3354/esr00066)
