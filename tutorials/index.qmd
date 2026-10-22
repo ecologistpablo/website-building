@@ -1,6 +1,6 @@
 ---
-title: "Human R Tutorials"
-subtitle: "Reproducible workflows for marine ecology in R — written by a human in the field."
+title: "R Tutorials"
+subtitle: "Reproducible workflows for marine ecology in R — written in the field."
 listing:
   contents: posts
   type: default

@@ -1,13 +1,11 @@
 project:
   type: website
   output-dir: _site
-  pre-render: scripts/sync-ai-sidebar.py
   render:
     - index.qmd
     - 404.qmd
     - blog/
     - tutorials/
-    - ai-tutorials/
   resources:
     - images/  # background photos referenced via inline-style url() aren't auto-detected
     # - CNAME  # re-enable once DNS for the custom domain is configured
@@ -26,9 +24,7 @@ website:
       - href: blog/index.qmd
         text: Blog
       - href: tutorials/index.qmd
-        text: Human R Tutorials
-      - href: ai-tutorials/index.qmd
-        text: AI R Tutorials
+        text: R Tutorials
     right:
       - icon: instagram
         href: https://www.instagram.com/ecologist.pablo/
@@ -41,18 +37,9 @@ website:
       - icon: linkedin
         href: https://www.linkedin.com/in/pablo-alfonso-fuenzalida-miralles-21914b1b2/
         aria-label: LinkedIn
-  sidebar:
-    - id: ai-curriculum
-      title: "Coding curriculum"
-      style: floating
-      collapse-level: 3
-      contents:
-# >>> ai-curriculum-sidebar (generated — run scripts/sync-ai-sidebar.py)
-        - ai-tutorials/index.qmd
-# <<< ai-curriculum-sidebar
   page-footer:
     border: false
-    left: "made with love (and AI) — Pablo Fuenzalida"
+    left: "made with love — Pablo Fuenzalida"
     right:
       - icon: instagram
         href: https://www.instagram.com/ecologist.pablo/
