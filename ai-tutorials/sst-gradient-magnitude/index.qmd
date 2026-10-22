@@ -19,7 +19,7 @@ execute:
 
 You have **one daily sea surface temperature field** on a regular lat–lon grid. You want **|∇SST|** — how sharply SST changes **across space** on that day — in **°C km⁻¹**. That is a standard way to represent **thermal fronts** when linking oceanography to tracks.
 
-This page builds a **50 × 50** toy ocean: **stable SST** on both sides of the map, with a **steep meridional front** through the centre (like a front crossing an otherwise uniform water mass). Then we compute |∇SST| with the same centred-difference recipe used on many reanalysis grids.
+This page builds a **50 × 50** toy ocean inspired by **real SST maps**: a **cooler western pool**, a **warmer eastern pool**, and a **meandering front** between them with a **smooth transition** (not two flat colours and a single pixel line). Then we compute |∇SST| with centred finite differences—the same idea as on reanalysis grids.
 
 **You need:** R and [`terra`](https://rspatial.org/terra/).
 
@@ -40,13 +40,17 @@ pacman::p_load(terra)
 
 ------------------------------------------------------------------------
 
-## 2. Fine grid + open-ocean front through the middle
+## 2. Toy SST with a meandering front (50 × 50)
 
-**50 × 50** cells on **0.5° × 0.5°** (~**0.01°** per cell). SST is **~21 °C** away from the front; a **narrow east–west transition** (~2 °C step) sits on the **central meridian** — steep enough that |∇SST| peaks on a thin band.
+**50 × 50** cells on **0.5° × 0.5°** (~**0.01°** per cell). We mimic an open-ocean **SST front** like those in equatorial Pacific imagery:
+
+- **West:** slightly cooler, relatively uniform water.  
+- **East:** slightly warmer pool.  
+- **Between:** a **curved front** (sine meanders, not a straight grid line).  
+- **Transition:** `tanh` spread over **several cells** so SST **changes gradually** through the front zone—then |∇SST| peaks **along** that band (highest where the transition is steepest).
 
 ```{r toy-raster}
 n <- 50L
-col_c <- (n + 1) / 2 # front line runs north–south through the map centre
 
 sst <- terra::rast(
   ncols = n,
@@ -58,14 +62,25 @@ sst <- terra::rast(
   crs = "EPSG:4326"
 )
 
-# plogis((col - col_c) * k): large k → front only a few cells wide.
-# Subtract 1.5 so west/east plateaus sit near 21 °C with a ~3 °C step across the front.
-k_steep <- 3.5
-sst_mat <- outer(1:n, 1:n, function(row, col) {
-  open_ocean <- 21 + 0.002 * (row - col_c) # tiny variation — mostly stable water
-  front_step <- 3 * plogis((col - col_c) * k_steep) - 1.5
-  open_ocean + front_step
-})
+# Grid indices → normalised coords (0–1), row = south→north, col = west→east.
+yn <- outer(1:n, 1:n, function(row, col) (row - 0.5) / n)
+xn <- outer(1:n, 1:n, function(row, col) (col - 0.5) / n)
+
+# Wavy front: x-position of the boundary varies with latitude (like a meandering front).
+front_x <- 0.48 + 0.07 * sin(yn * 4 * pi) + 0.035 * sin(yn * 11 * pi)
+
+# Signed distance to the front in *cell* units (negative = west / cooler side).
+dist_cells <- (xn - front_x) * n
+
+# tanh(): smooth blend over ~2–4 cells — not a hard step between two plateaus.
+transition_width <- 2.4
+warm_minus_cool <- tanh(-dist_cells / transition_width)
+
+# ~2 °C contrast west→east, centred on 21 °C, plus weak mesoscale ripples.
+texture <- 0.1 * sin(xn * 38 * pi) * cos(yn * 31 * pi) +
+  0.06 * sin(xn * 19 * pi + yn * 23 * pi)
+
+sst_mat <- 21 + 1.0 * warm_minus_cool + texture
 
 terra::values(sst) <- matrix(sst_mat, nrow = n, ncol = n, byrow = TRUE)
 
@@ -78,10 +93,10 @@ c(
 ```
 
 ```{r plot-sst}
-plot(sst, main = "Toy SST (°C) — stable ocean, front through centre")
+plot(sst, main = "Toy SST (°C) — meandering front, smooth transition")
 ```
 
-West and east of the middle column should look **almost uniform**; the colour change is **concentrated** on the centre line.
+You should see **continuous colour change** through the front (not a single vertical stripe), with **higher |∇SST|** tracing the curved boundary in the next plots.
 
 ------------------------------------------------------------------------
 
@@ -133,7 +148,7 @@ plot(grad, main = expression("|"*nabla*SST|" (°C km"^-1*")"))
 par(mfrow = c(1, 1))
 ```
 
-**|∇SST|** should **peak on the central front** and stay **low** on the stable flanks (small north–south background trend adds weak structure off the front).
+**|∇SST|** should be **largest along the meandering front** (where SST changes fastest) and **smaller** on the cooler and warmer flanks where SST is more uniform. Ripples add weak patches of moderate gradient away from the main front.
 
 ------------------------------------------------------------------------
 
