@@ -2,48 +2,14 @@
 title: "AI R Tutorials"
 subtitle: "Learn R first — then you can trust (and fix) what AI writes."
 sidebar: ai-curriculum
-listing:
-  contents:
-    - cs-crash-course/index.qmd
-  type: default
-  sort: title asc
-  fields: [title, description]
 toc: false
 format:
   html:
     page-layout: article
 ---
 
-## Functional programming
+## SST gradient magnitude
 
-::: {.panel-tabset}
+Compute **|∇SST|** (°C km⁻¹) from a single daily SST raster: centred finite differences, toy open-ocean front, checks before you touch real NetCDF.
 
-### Beginner · Base R
-
-Vectors, `if`/`else`, loops, `apply`, `lapply`. [Open →](level-1-base-r/index.qmd)
-
-### Intermediate · dplyr
-
-`mutate`, `filter`, `group_by`, `lead`/`lag`, joins. [Open →](level-2-dplyr/index.qmd)
-
-### Intermediate · purrr & furrr
-
-`map`, `safely`, `walk`, optional `furrr`. [Open →](level-3-purrr/index.qmd)
-
-### Advanced · data.table
-
-`[i, j, by]`, `.SD`, `shift`, `fcase`. [Open →](level-4-data-table/index.qmd)
-
-:::
-
-## Computer science crash course
-
-Types, memory, debugging, reproducibility — light R. [Open →](cs-crash-course/index.qmd)
-
-Use the **Coding curriculum** sidebar for every quest, or open a track above.
-
-**Human R Tutorials** = full field workflows. **AI R Tutorials** = skill drills.
-
-## Open teaching we build on
-
-Quest pages end with **Go deeper (open access)**: paraphrased pointers to free courses and code from [Software Carpentry](https://swcarpentry.github.io/), [R for Data Science](https://r4ds.hadley.nz/), [Chris Brown / Seascape Models](https://www.seascapemodels.org/), St Andrews statistical ecology, UQ R workshops, [AniMove](https://animove.org/), Plymouth marine training, FIU open stats materials, and Galápagos community R courses—plus package docs for dplyr, purrr, and data.table. Functional programming tracks share one bibliography; the [CS crash course](cs-crash-course/index.qmd#go-deeper-open-access) adds reproducibility and workflow sources.
+[Open tutorial →](sst-gradient-magnitude/index.qmd)

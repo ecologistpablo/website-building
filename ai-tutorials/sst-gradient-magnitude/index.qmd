@@ -1,0 +1,181 @@
+---
+title: "SST gradient magnitude from a daily raster"
+description: "Compute |∇SST| (°C km⁻¹) with centred finite differences on one SST layer"
+date: 2026-10-22
+sidebar: ai-curriculum
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 2
+    code-fold: false
+freeze: true
+execute:
+  warning: false
+  message: false
+---
+
+## Overview
+
+You have **one daily sea surface temperature field** on a regular lat–lon grid. You want **|∇SST|** — how sharply SST changes **across space** on that day — in **°C km⁻¹**. That is a standard way to represent **thermal fronts** when linking oceanography to tracks.
+
+This page builds a **50 × 50** toy ocean: **stable SST** on both sides of the map, with a **steep meridional front** through the centre (like a front crossing an otherwise uniform water mass). Then we compute |∇SST| with the same centred-difference recipe used on many reanalysis grids.
+
+**You need:** R and [`terra`](https://rspatial.org/terra/).
+
+**This is not:** day-to-day SST change at one point; a front-probability layer; or a gradient of regional mean SST.
+
+------------------------------------------------------------------------
+
+## 1. Load terra
+
+```{r setup}
+#| include: false
+knitr::opts_chunk$set(fig.width = 8, fig.height = 4.5, dpi = 120)
+```
+
+```{r packages}
+pacman::p_load(terra)
+```
+
+------------------------------------------------------------------------
+
+## 2. Fine grid + open-ocean front through the middle
+
+**50 × 50** cells on **0.5° × 0.5°** (~**0.01°** per cell). SST is **~21 °C** away from the front; a **narrow east–west transition** (~2 °C step) sits on the **central meridian** — steep enough that |∇SST| peaks on a thin band.
+
+```{r toy-raster}
+n <- 50L
+col_c <- (n + 1) / 2 # front line runs north–south through the map centre
+
+sst <- terra::rast(
+  ncols = n,
+  nrows = n,
+  xmin = 170,
+  xmax = 170.5,
+  ymin = -45,
+  ymax = -44.5,
+  crs = "EPSG:4326"
+)
+
+# plogis((col - col_c) * k): large k → front only a few cells wide.
+# Subtract 1.5 so west/east plateaus sit near 21 °C with a ~3 °C step across the front.
+k_steep <- 3.5
+sst_mat <- outer(1:n, 1:n, function(row, col) {
+  open_ocean <- 21 + 0.002 * (row - col_c) # tiny variation — mostly stable water
+  front_step <- 3 * plogis((col - col_c) * k_steep) - 1.5
+  open_ocean + front_step
+})
+
+terra::values(sst) <- matrix(sst_mat, nrow = n, ncol = n, byrow = TRUE)
+
+c(
+  res_lon_deg = terra::res(sst)[1],
+  res_lat_deg = terra::res(sst)[2],
+  sst_min = min(sst_mat, na.rm = TRUE),
+  sst_max = max(sst_mat, na.rm = TRUE)
+)
+```
+
+```{r plot-sst}
+plot(sst, main = "Toy SST (°C) — stable ocean, front through centre")
+```
+
+West and east of the middle column should look **almost uniform**; the colour change is **concentrated** on the centre line.
+
+------------------------------------------------------------------------
+
+## 3. Cell width in kilometres
+
+```{r cell-km}
+res <- terra::res(sst)
+clat <- mean(
+  terra::yFromCell(sst, seq_len(min(5000L, terra::ncell(sst)))),
+  na.rm = TRUE
+)
+dx_km <- as.numeric(res[1]) * 111.32 * cos(clat * pi / 180)
+dy_km <- as.numeric(res[2]) * 111.32
+c(dx_km = dx_km, dy_km = dy_km, mean_lat = clat)
+```
+
+On real NetCDF, `summary(SST)` should look like ocean **°C** (~0–35), not Kelvin (~273+).
+
+------------------------------------------------------------------------
+
+## 4. Centred differences → |∇SST|
+
+```{r sst-grad-fn}
+sst_grad_magnitude_layer <- function(sst) {
+  if (is.null(sst) || !terra::ncell(sst)) return(NULL)
+  res <- terra::res(sst)
+  clat <- mean(
+    terra::yFromCell(sst, seq_len(min(5000L, terra::ncell(sst)))),
+    na.rm = TRUE
+  )
+  dx_km <- as.numeric(res[1]) * 111.32 * cos(clat * pi / 180)
+  dy_km <- as.numeric(res[2]) * 111.32
+  if (!is.finite(dx_km) || dx_km <= 0 || !is.finite(dy_km) || dy_km <= 0) return(NULL)
+  w_x <- matrix(c(0, 0, 0, -0.5, 0, 0.5, 0, 0, 0), nrow = 3, ncol = 3)
+  w_y <- matrix(c(0, -0.5, 0, 0, 0, 0, 0, 0.5, 0), nrow = 3, ncol = 3)
+  gx <- terra::focal(sst, w = w_x, fun = sum, na.rm = TRUE, pad = TRUE) / dx_km
+  gy <- terra::focal(sst, w = w_y, fun = sum, na.rm = TRUE, pad = TRUE) / dy_km
+  sqrt(gx^2 + gy^2)
+}
+
+grad <- sst_grad_magnitude_layer(sst)
+summary(grad, na.rm = TRUE)
+```
+
+```{r plot-both}
+par(mfrow = c(1, 2))
+plot(sst, main = "SST (°C)")
+plot(grad, main = expression("|"*nabla*SST|" (°C km"^-1*")"))
+par(mfrow = c(1, 1))
+```
+
+**|∇SST|** should **peak on the central front** and stay **low** on the stable flanks (small north–south background trend adds weak structure off the front).
+
+------------------------------------------------------------------------
+
+## 5. Quick checks
+
+```{r sanity}
+flat <- sst * 0 + 21
+g_flat <- sst_grad_magnitude_layer(flat)
+g_front <- sst_grad_magnitude_layer(sst)
+mean_flat <- terra::global(g_flat, "mean", na.rm = TRUE)[1, 1]
+mean_front <- terra::global(g_front, "mean", na.rm = TRUE)[1, 1]
+max_front <- terra::global(g_front, "max", na.rm = TRUE)[1, 1]
+stopifnot(is.finite(mean_flat), is.finite(mean_front))
+stopifnot(mean_front > mean_flat, max_front > 0.05)
+c(flat_mean = mean_flat, front_mean = mean_front, front_max = max_front)
+```
+
+------------------------------------------------------------------------
+
+## 6. Common mix-ups
+
+| Idea | Reality |
+|------|---------|
+| Gradient = day-to-day SST at a point | **Spatial** differences on **one** daily layer |
+| Kelvin vs Celsius | Differences match; report SST in one convention |
+| Coastal high \|∇SST\| | Often bathymetry/coast, not open-ocean fronts |
+| Fine grid = all filaments resolved | ~0.08° only partly resolves mesoscale fronts |
+
+------------------------------------------------------------------------
+
+## 7. Real data
+
+1. One daily SST layer on a grid you trust.  
+2. Same function per day if needed.  
+3. `terra::extract` at track lon/lat (check −180…180 vs 0…360).  
+4. Aggregate to your model time step.
+
+See [Copernicus Marine](https://data.marine.copernicus.eu/) for GLORYS-style products.
+
+------------------------------------------------------------------------
+
+## Go further
+
+- [terra](https://rspatial.org/terra/) — `focal`, `extract`, `res`  
+- Seminoff et al. (2008) — SST fronts in ecology (different metric, useful context): [doi:10.3354/esr00066](https://doi.org/10.3354/esr00066)
