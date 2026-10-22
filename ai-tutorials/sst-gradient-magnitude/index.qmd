@@ -17,13 +17,17 @@ execute:
 
 ## Overview
 
-You have **one daily sea surface temperature field** on a regular lat–lon grid. You want **|∇SST|** — how sharply SST changes **across space** on that day — in **°C km⁻¹**. That is a standard way to represent **thermal fronts** when linking oceanography to tracks.
+You have **one daily sea surface temperature field** on a regular lat–lon grid. You want **|∇SST|** — how sharply SST changes **across space** on that day — in **°C km⁻¹**.
 
-This page builds a **50 × 50** toy ocean inspired by **real SST maps**: a **cooler western pool**, a **warmer eastern pool**, and a **meandering front** between them with a **smooth transition** (not two flat colours and a single pixel line). Then we compute |∇SST| with centred finite differences—the same idea as on reanalysis grids.
+This tutorial builds a **toy ocean** on an **80 × 80** grid:
+
+- **~19 °C** on the **north, south, east, and west** margins (open-ocean background).  
+- A **small, meandering thermal front** through the **middle** (~0.35 °C step, smooth in space).  
+- The same **centred finite-difference** recipe used on reanalysis SST, then side-by-side maps.
 
 **You need:** R and [`terra`](https://rspatial.org/terra/).
 
-**This is not:** day-to-day SST change at one point; a front-probability layer; or a gradient of regional mean SST.
+**This is not:** SST changing over time at one point, or a front-probability layer.
 
 ------------------------------------------------------------------------
 
@@ -40,17 +44,12 @@ pacman::p_load(terra)
 
 ------------------------------------------------------------------------
 
-## 2. Toy SST with a meandering front (50 × 50)
+## 2. Toy SST: 19 °C margins + front in the centre
 
-**50 × 50** cells on **0.5° × 0.5°** (~**0.01°** per cell). We mimic an open-ocean **SST front** like those in equatorial Pacific imagery:
-
-- **West:** slightly cooler, relatively uniform water.  
-- **East:** slightly warmer pool.  
-- **Between:** a **curved front** (sine meanders, not a straight grid line).  
-- **Transition:** `tanh` spread over **several cells** so SST **changes gradually** through the front zone—then |∇SST| peaks **along** that band (highest where the transition is steepest).
+We fill the raster **cell by cell** with `xyFromCell()` so longitude and latitude are not swapped (a common source of “striped” fake oceans).
 
 ```{r toy-raster}
-n <- 50L
+n <- 80L
 
 sst <- terra::rast(
   ncols = n,
@@ -62,41 +61,40 @@ sst <- terra::rast(
   crs = "EPSG:4326"
 )
 
-# Grid indices → normalised coords (0–1), row = south→north, col = west→east.
-yn <- outer(1:n, 1:n, function(row, col) (row - 0.5) / n)
-xn <- outer(1:n, 1:n, function(row, col) (col - 0.5) / n)
+ex <- ext(sst)
+xy <- terra::xyFromCell(sst, 1:ncell(sst))
+lon <- xy[, 1]
+lat <- xy[, 2]
+lon_n <- (lon - ex[1]) / (ex[2] - ex[1])
+lat_n <- (lat - ex[3]) / (ex[4] - ex[3])
 
-# Wavy front: x-position of the boundary varies with latitude (like a meandering front).
-front_x <- 0.48 + 0.07 * sin(yn * 4 * pi) + 0.035 * sin(yn * 11 * pi)
+# Fade the front to zero toward each edge → margins stay ~19 °C (no hard clip).
+edge_taper <- pmin(
+  pmin(lon_n / 0.15, (1 - lon_n) / 0.15),
+  pmin(lat_n / 0.15, (1 - lat_n) / 0.15),
+  1
+)
 
-# Signed distance to the front in *cell* units (negative = west / cooler side).
-dist_cells <- (xn - front_x) * n
+# Front longitude wiggles with latitude (meandering boundary).
+front_lon <- 170.25 + 0.012 * sin((lat_n - 0.5) * 2 * pi * 3)
 
-# tanh(): smooth blend over ~2–4 cells — not a hard step between two plateaus.
-transition_width <- 2.4
-warm_minus_cool <- tanh(-dist_cells / transition_width)
-
-# ~2 °C contrast west→east, centred on 21 °C, plus weak mesoscale ripples.
-texture <- 0.1 * sin(xn * 38 * pi) * cos(yn * 31 * pi) +
-  0.06 * sin(xn * 19 * pi + yn * 23 * pi)
-
-sst_mat <- 21 + 1.0 * warm_minus_cool + texture
-
-terra::values(sst) <- matrix(sst_mat, nrow = n, ncol = n, byrow = TRUE)
+# tanh(): smooth transition over ~0.008° (~1 km) — not a one-cell jump.
+sst_vals <- 19 + 0.35 * tanh(-(lon - front_lon) / 0.008) * edge_taper
+terra::values(sst) <- sst_vals
 
 c(
   res_lon_deg = terra::res(sst)[1],
   res_lat_deg = terra::res(sst)[2],
-  sst_min = min(sst_mat, na.rm = TRUE),
-  sst_max = max(sst_mat, na.rm = TRUE)
+  sst_min = min(sst_vals),
+  sst_max = max(sst_vals)
 )
 ```
 
 ```{r plot-sst}
-plot(sst, main = "Toy SST (°C) — meandering front, smooth transition")
+plot(sst, main = "Toy SST (°C) — ~19 °C margins, front through centre")
 ```
 
-You should see **continuous colour change** through the front (not a single vertical stripe), with **higher |∇SST|** tracing the curved boundary in the next plots.
+Expect **teal ~19 °C** around the rim, **warmer west / cooler east** of the wavy centre line, and **continuous** colour through the front (not two solid blocks).
 
 ------------------------------------------------------------------------
 
@@ -112,8 +110,6 @@ dx_km <- as.numeric(res[1]) * 111.32 * cos(clat * pi / 180)
 dy_km <- as.numeric(res[2]) * 111.32
 c(dx_km = dx_km, dy_km = dy_km, mean_lat = clat)
 ```
-
-On real NetCDF, `summary(SST)` should look like ocean **°C** (~0–35), not Kelvin (~273+).
 
 ------------------------------------------------------------------------
 
@@ -138,32 +134,38 @@ sst_grad_magnitude_layer <- function(sst) {
 }
 
 grad <- sst_grad_magnitude_layer(sst)
+
+# Mask outer rim for plotting only (focal pad can inflate |∇SST| on the frame).
+grad_show <- grad
+edge <- lon_n < 0.08 | lon_n > 0.92 | lat_n < 0.08 | lat_n > 0.92
+gvals <- terra::values(grad_show)
+gvals[edge] <- NA
+terra::values(grad_show) <- gvals
+
 summary(grad, na.rm = TRUE)
 ```
 
 ```{r plot-both}
 par(mfrow = c(1, 2))
 plot(sst, main = "SST (°C)")
-plot(grad, main = expression("|"*nabla*SST|" (°C km"^-1*")"))
+plot(grad_show, main = expression("|"*nabla*SST|" (°C km"^-1*")"))
 par(mfrow = c(1, 1))
 ```
 
-**|∇SST|** should be **largest along the meandering front** (where SST changes fastest) and **smaller** on the cooler and warmer flanks where SST is more uniform. Ripples add weak patches of moderate gradient away from the main front.
+**|∇SST|** should **light up along the wavy front** and stay **low** on the ~19 °C flanks.
 
 ------------------------------------------------------------------------
 
 ## 5. Quick checks
 
 ```{r sanity}
-flat <- sst * 0 + 21
+flat <- sst * 0 + 19
 g_flat <- sst_grad_magnitude_layer(flat)
-g_front <- sst_grad_magnitude_layer(sst)
+interior <- !(lon_n < 0.08 | lon_n > 0.92 | lat_n < 0.08 | lat_n > 0.92)
+max_front <- max(terra::values(grad)[interior], na.rm = TRUE)
 mean_flat <- terra::global(g_flat, "mean", na.rm = TRUE)[1, 1]
-mean_front <- terra::global(g_front, "mean", na.rm = TRUE)[1, 1]
-max_front <- terra::global(g_front, "max", na.rm = TRUE)[1, 1]
-stopifnot(is.finite(mean_flat), is.finite(mean_front))
-stopifnot(mean_front > mean_flat, max_front > 0.05)
-c(flat_mean = mean_flat, front_mean = mean_front, front_max = max_front)
+stopifnot(is.finite(mean_flat), max_front > 0.05, max_front < 3)
+c(flat_mean = mean_flat, front_max_interior = max_front)
 ```
 
 ------------------------------------------------------------------------
@@ -173,9 +175,9 @@ c(flat_mean = mean_flat, front_mean = mean_front, front_max = max_front)
 | Idea | Reality |
 |------|---------|
 | Gradient = day-to-day SST at a point | **Spatial** differences on **one** daily layer |
+| Blocky north–south stripes in a toy map | Often **matrix orientation** — use `xyFromCell()` |
 | Kelvin vs Celsius | Differences match; report SST in one convention |
-| Coastal high \|∇SST\| | Often bathymetry/coast, not open-ocean fronts |
-| Fine grid = all filaments resolved | ~0.08° only partly resolves mesoscale fronts |
+| Edge spikes in \|∇SST\| | **Pad** + frame taper — mask rim for display |
 
 ------------------------------------------------------------------------
 
@@ -183,14 +185,14 @@ c(flat_mean = mean_flat, front_mean = mean_front, front_max = max_front)
 
 1. One daily SST layer on a grid you trust.  
 2. Same function per day if needed.  
-3. `terra::extract` at track lon/lat (check −180…180 vs 0…360).  
+3. `terra::extract` at track lon/lat (check lon convention).  
 4. Aggregate to your model time step.
 
-See [Copernicus Marine](https://data.marine.copernicus.eu/) for GLORYS-style products.
+[Copernicus Marine](https://data.marine.copernicus.eu/) for GLORYS-style products.
 
 ------------------------------------------------------------------------
 
 ## Go further
 
 - [terra](https://rspatial.org/terra/) — `focal`, `extract`, `res`  
-- Seminoff et al. (2008) — SST fronts in ecology (different metric, useful context): [doi:10.3354/esr00066](https://doi.org/10.3354/esr00066)
+- Seminoff et al. (2008): [doi:10.3354/esr00066](https://doi.org/10.3354/esr00066)
