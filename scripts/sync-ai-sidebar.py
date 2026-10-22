@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write ai-curriculum sidebar (single SST gradient tutorial)."""
+"""Write ai-curriculum sidebar (index only when no AI track pages)."""
 from __future__ import annotations
 
 import re
@@ -17,16 +17,6 @@ MARK_END = "# <<< ai-curriculum-sidebar\n"
 def sidebar_contents() -> list:
     return [
         "ai-tutorials/index.qmd",
-        {
-            "section": "Ocean fields",
-            "href": "ai-tutorials/sst-gradient-magnitude/index.qmd",
-            "contents": [
-                {
-                    "text": "SST gradient magnitude (|∇SST|)",
-                    "href": "ai-tutorials/sst-gradient-magnitude/index.qmd",
-                },
-            ],
-        },
     ]
 
 

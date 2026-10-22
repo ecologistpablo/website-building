@@ -8,8 +8,4 @@ format:
     page-layout: article
 ---
 
-## SST gradient magnitude
-
-Compute **|∇SST|** (°C km⁻¹) from a single daily SST raster: centred finite differences, toy open-ocean front, checks before you touch real NetCDF.
-
-[Open tutorial →](sst-gradient-magnitude/index.qmd)
+More AI-assisted walkthroughs will land here when they are ready. For now, the SST gradient / frontal proxy workflow lives under **Human R Tutorials** — [Find a dynamic ocean front](../tutorials/posts/Find%20a%20dynamic%20ocean%20front/index.qmd).
