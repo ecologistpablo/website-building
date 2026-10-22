@@ -1,5 +1,5 @@
 ---
-title: "Calculating SST gradients to compute dynamic ocean features"
+title: "SST gradients as a proxy for dynamic ocean features"
 author: "Pablo Fuenzalida"
 date: "2026-10-22"
 categories: [movement, spatial, oceanography]
